@@ -1,0 +1,230 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Horus",
+    "theme_version": "1.0.0",
+    "theme_author": "Horus Studio",
+    "theme_documentation_url": "https://github.com/your-org/horus-theme",
+    "theme_support_url": "https://github.com/your-org/horus-theme/issues"
+  },
+  {
+    "name": "Logo & Branding",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "logo",
+        "label": "Logo image"
+      },
+      {
+        "type": "range",
+        "id": "logo_width",
+        "min": 60,
+        "max": 250,
+        "step": 10,
+        "unit": "px",
+        "label": "Logo width",
+        "default": 120
+      },
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon image"
+      }
+    ]
+  },
+  {
+    "name": "Colors",
+    "settings": [
+      {
+        "type": "color",
+        "id": "color_bg",
+        "label": "Background",
+        "default": "#0B0B0B"
+      },
+      {
+        "type": "color",
+        "id": "color_surface",
+        "label": "Card / Surface",
+        "default": "#141414"
+      },
+      {
+        "type": "color",
+        "id": "color_text",
+        "label": "Text — Primary",
+        "default": "#F5F5F7"
+      },
+      {
+        "type": "color",
+        "id": "color_text_muted",
+        "label": "Text — Muted",
+        "default": "#8E8E93"
+      },
+      {
+        "type": "color",
+        "id": "color_gold",
+        "label": "Accent — Gold (Midtone)",
+        "info": "Midtone Gold: #C89D54 | Highlight: #E6C387 | Shadow: #7E5B2B",
+        "default": "#C89D54"
+      },
+      {
+        "type": "color",
+        "id": "color_azure",
+        "label": "Accent — Azure Blue",
+        "default": "#007FFF"
+      }
+    ]
+  },
+  {
+    "name": "Typography",
+    "settings": [
+      {
+        "type": "font_picker",
+        "id": "type_display_font",
+        "label": "Display / Heading Font",
+        "default": "barlow_condensed_n7"
+      },
+      {
+        "type": "font_picker",
+        "id": "type_body_font",
+        "label": "Body Font",
+        "default": "inter_n4"
+      },
+      {
+        "type": "range",
+        "id": "type_base_size",
+        "min": 14,
+        "max": 18,
+        "step": 1,
+        "unit": "px",
+        "label": "Base font size",
+        "default": 16
+      }
+    ]
+  },
+  {
+    "name": "Navigation",
+    "settings": [
+      {
+        "type": "link_list",
+        "id": "main_menu_handle",
+        "label": "Main menu",
+        "default": "main-menu"
+      },
+      {
+        "type": "link_list",
+        "id": "secondary_menu_handle",
+        "label": "Secondary menu (mobile)",
+        "default": "footer"
+      }
+    ]
+  },
+  {
+    "name": "Social Media",
+    "settings": [
+      {
+        "type": "url",
+        "id": "social_instagram_link",
+        "label": "Instagram URL"
+      },
+      {
+        "type": "url",
+        "id": "social_tiktok_link",
+        "label": "TikTok URL"
+      },
+      {
+        "type": "url",
+        "id": "social_twitter_link",
+        "label": "X / Twitter URL"
+      },
+      {
+        "type": "url",
+        "id": "social_facebook_link",
+        "label": "Facebook URL"
+      },
+      {
+        "type": "url",
+        "id": "social_youtube_link",
+        "label": "YouTube URL"
+      }
+    ]
+  },
+  {
+    "name": "Cart",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Cart type",
+        "options": [
+          { "value": "drawer", "label": "Slide-out drawer (recommended)" },
+          { "value": "page",   "label": "Cart page" }
+        ],
+        "default": "drawer"
+      },
+      {
+        "type": "range",
+        "id": "free_shipping_threshold",
+        "min": 0,
+        "max": 500,
+        "step": 10,
+        "unit": "$",
+        "label": "Free shipping threshold",
+        "default": 100
+      }
+    ]
+  },
+  {
+    "name": "Search",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "enable_predictive_search",
+        "label": "Enable predictive search",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Product Cards",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "show_vendor",
+        "label": "Show vendor / brand name",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "show_rating",
+        "label": "Show product rating",
+        "default": false
+      },
+      {
+        "type": "select",
+        "id": "image_ratio",
+        "label": "Product image ratio",
+        "options": [
+          { "value": "portrait", "label": "Portrait (3:4)" },
+          { "value": "square",   "label": "Square (1:1)" }
+        ],
+        "default": "portrait"
+      },
+      {
+        "type": "checkbox",
+        "id": "show_quick_add",
+        "label": "Enable quick add on hover",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Checkout",
+    "settings": [
+      {
+        "type": "richtext",
+        "id": "order_note",
+        "label": "Order confirmation note"
+      }
+    ]
+  }
+]

@@ -1,0 +1,105 @@
+{% comment %}
+  sections/collection-banner.liquid
+  Collection header banner with centered title, description, and subtle gold accent.
+{% endcomment %}
+
+<div class="collection-banner-section">
+  <div class="container collection-banner-container">
+    <div class="collection-banner-inner">
+      <h1 class="collection-banner-heading">
+        {{ collection.title }}
+      </h1>
+
+      {%- if section.settings.show_description and collection.description != blank -%}
+        <div class="collection-banner-description">
+          {{ collection.description }}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</div>
+
+<style>
+.section-collection-banner {
+  display: block;
+  width: 100%;
+}
+
+.collection-banner-section {
+  background-color: #0A0A0A;
+  border-bottom: 1px solid rgba(200, 157, 84, 0.2);
+  padding: 3.5rem 1rem 3rem;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .collection-banner-section {
+    padding: 5rem 1.5rem 4.5rem;
+  }
+}
+
+.collection-banner-container {
+  max-width: 900px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 2;
+}
+
+.collection-banner-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.collection-banner-heading {
+  margin: 0;
+  font-family: var(--font-display, 'Barlow Condensed', 'Impact', sans-serif);
+  font-size: clamp(2.25rem, 6vw, 4.25rem);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  line-height: 1.1;
+  color: #FFFFFF;
+  background: linear-gradient(180deg, #FFFFFF 0%, #C89D54 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.collection-banner-description {
+  margin: 0;
+  max-width: 620px;
+  font-family: var(--font-body, 'Inter', system-ui, sans-serif);
+  font-size: clamp(0.9rem, 2.5vw, 1.05rem);
+  line-height: 1.6;
+  color: #8E8E93;
+}
+
+.collection-banner-description p {
+  margin: 0;
+}
+</style>
+
+{% schema %}
+{
+  "name": "Collection Banner",
+  "class": "section-collection-banner",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_description",
+      "label": "Show collection description",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "name": "Collection Banner"
+    }
+  ]
+}
+{% endschema %}

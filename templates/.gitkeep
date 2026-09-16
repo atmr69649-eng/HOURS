@@ -1,0 +1,3 @@
+{% comment %}
+  templates/product.json — wired in product-main section
+{% endcomment %}

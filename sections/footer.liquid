@@ -1,0 +1,167 @@
+{% comment %}
+  sections/footer.liquid
+  Minimalist dark footer — newsletter, links, socials, legal
+{% endcomment %}
+
+<footer class="site-footer" role="contentinfo">
+  <div class="container">
+
+    <div class="footer-grid">
+
+      <!-- Brand Column -->
+      <div class="footer-brand">
+        <a href="{{ routes.root_url }}" aria-label="HORUS home" style="display:inline-flex;align-items:center;gap:0.75rem;text-decoration:none;">
+          {% if settings.logo != blank %}
+            {{
+              settings.logo
+              | image_url: width: 160
+              | image_tag:
+                alt: settings.logo.alt | default: 'HORUS',
+                width: 120,
+                height: 40,
+                loading: 'lazy'
+            }}
+          {% else %}
+            <img
+              src="{{ 'horus-logo.jpg' | asset_url }}"
+              alt="HORUS"
+              class="footer-logo-img"
+              width="64"
+              height="64"
+              loading="lazy"
+              style="width: 60px; height: 60px; object-fit: cover; border-radius: 50%; border: 2px solid rgba(200, 157, 84, 0.5); box-shadow: 0 0 16px rgba(200, 157, 84, 0.25);">
+          {% endif %}
+          <span class="header-logo-wordmark" style="font-size:1.6rem;">HORUS</span>
+        </a>
+        <p>{{ section.settings.brand_description | default: 'Premium unisex streetwear crafted for the bold. Elevated basics, intentional design.' }}</p>
+
+        <!-- Social Icons -->
+        <div class="social-links" aria-label="Social media links">
+          {% if settings.social_instagram_link != blank %}
+            <a href="{{ settings.social_instagram_link }}" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
+              </svg>
+            </a>
+          {% endif %}
+          {% if settings.social_tiktok_link != blank %}
+            <a href="{{ settings.social_tiktok_link }}" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="TikTok">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M19.59 6.69a4.83 4.83 0 01-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 01-2.88 2.5 2.89 2.89 0 01-2.89-2.89 2.89 2.89 0 012.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 00-.79-.05 6.34 6.34 0 00-6.34 6.34 6.34 6.34 0 006.34 6.34 6.34 6.34 0 006.33-6.34V8.81a8.18 8.18 0 004.77 1.53V6.91a4.85 4.85 0 01-1-.22z"/>
+              </svg>
+            </a>
+          {% endif %}
+          {% if settings.social_twitter_link != blank %}
+            <a href="{{ settings.social_twitter_link }}" class="social-link" target="_blank" rel="noopener noreferrer" aria-label="X / Twitter">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+              </svg>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Shop Links -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Shop</h3>
+        <ul class="footer-links" role="list">
+          {% for link in linklists[section.settings.shop_menu].links %}
+            <li><a href="{{ link.url }}" class="footer-link">{{ link.title }}</a></li>
+          {% else %}
+            <li><a href="/collections/all" class="footer-link">All Products</a></li>
+            <li><a href="/collections/new-arrivals" class="footer-link">New Arrivals</a></li>
+            <li><a href="/collections/sale" class="footer-link">Sale</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Info Links -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Info</h3>
+        <ul class="footer-links" role="list">
+          {% for link in linklists[section.settings.info_menu].links %}
+            <li><a href="{{ link.url }}" class="footer-link">{{ link.title }}</a></li>
+          {% else %}
+            <li><a href="/pages/about" class="footer-link">About Us</a></li>
+            <li><a href="/pages/faq" class="footer-link">FAQ</a></li>
+            <li><a href="/pages/contact" class="footer-link">Contact</a></li>
+            <li><a href="/pages/size-guide" class="footer-link">Size Guide</a></li>
+          {% endfor %}
+        </ul>
+      </div>
+
+      <!-- Newsletter -->
+      <div class="footer-col">
+        <h3 class="footer-heading">Stay in the loop</h3>
+        <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-4);line-height:1.6;">
+          {{ section.settings.newsletter_subtitle | default: 'Early drops, exclusive restocks. No spam.' }}
+        </p>
+        <form class="newsletter-form" data-newsletter-form action="/contact#contact_form" method="post" novalidate>
+          <input type="hidden" name="form_type" value="customer">
+          <input type="hidden" name="utf8" value="✓">
+          <div class="newsletter-input-wrap">
+            <label for="footer-email" class="sr-only">Email address</label>
+            <input
+              type="email"
+              id="footer-email"
+              name="contact[email]"
+              class="newsletter-input"
+              placeholder="your@email.com"
+              autocomplete="email"
+              required
+              aria-required="true">
+            <button type="submit" class="newsletter-btn" aria-label="Subscribe to newsletter">
+              Join
+            </button>
+          </div>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Bottom Bar -->
+    <div class="footer-bottom">
+      <p class="footer-copy">
+        &copy; {{ 'now' | date: '%Y' }} HORUS. All rights reserved.
+      </p>
+      <nav class="footer-legal" aria-label="Legal links">
+        {{ shop.privacy_policy.url | default: '/policies/privacy-policy' | link_to: 'Privacy' }}
+        {{ shop.terms_of_service.url | default: '/policies/terms-of-service' | link_to: 'Terms' }}
+        {{ shop.refund_policy.url | default: '/policies/refund-policy' | link_to: 'Refunds' }}
+      </nav>
+    </div>
+
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Footer",
+  "tag": "footer",
+  "class": "site-footer-wrapper",
+  "settings": [
+    {
+      "type": "textarea",
+      "id": "brand_description",
+      "label": "Brand Description",
+      "default": "Premium unisex streetwear crafted for the bold. Elevated basics, intentional design."
+    },
+    {
+      "type": "link_list",
+      "id": "shop_menu",
+      "label": "Shop Menu"
+    },
+    {
+      "type": "link_list",
+      "id": "info_menu",
+      "label": "Info Menu"
+    },
+    {
+      "type": "text",
+      "id": "newsletter_subtitle",
+      "label": "Newsletter Subtitle",
+      "default": "Early drops, exclusive restocks. No spam."
+    }
+  ]
+}
+{% endschema %}

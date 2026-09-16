@@ -1,0 +1,12 @@
+# Shopify Theme Check ignore patterns
+.git/
+node_modules/
+*.log
+.DS_Store
+Thumbs.db
+
+# Local dev
+.shopify/
+
+# Build artifacts (if using a build step)
+dist/

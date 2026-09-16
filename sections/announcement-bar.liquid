@@ -1,0 +1,43 @@
+{% comment %}
+  sections/announcement-bar.liquid
+  Dismissible gold announcement strip
+{% endcomment %}
+
+<div class="announcement-bar" role="banner" aria-label="Announcement">
+  <p>
+    {{ section.settings.text | default: '🔥 FREE SHIPPING on orders over $100 &nbsp;|&nbsp; Use code <strong>HORUS10</strong> for 10% off your first order' }}
+  </p>
+  <button
+    data-close-announcement
+    aria-label="Dismiss announcement"
+    style="
+      position:absolute;right:var(--gutter);top:50%;
+      transform:translateY(-50%);
+      background:none;border:none;cursor:pointer;
+      color:rgba(0,0,0,0.5);font-size:1rem;line-height:1;
+      padding:4px;
+    ">
+    ×
+  </button>
+</div>
+
+{% stylesheet %}
+.announcement-bar { position: relative; overflow: hidden; }
+{% endstylesheet %}
+
+{% schema %}
+{
+  "name": "Announcement Bar",
+  "tag": "div",
+  "class": "announcement-bar-wrapper",
+  "settings": [
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Announcement Text",
+      "default": "<p>🔥 FREE SHIPPING on orders over $100 | Use code <strong>HORUS10</strong> for 10% off</p>"
+    }
+  ],
+  "presets": [{ "name": "Announcement Bar" }]
+}
+{% endschema %}

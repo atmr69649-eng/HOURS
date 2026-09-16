@@ -1,0 +1,22 @@
+{
+  "sections": {
+    "hero-banner": {
+      "type": "hero-banner",
+      "settings": {
+        "eyebrow": "New Collection — SS 2025",
+        "title_line_1": "TIMELESS",
+        "title_line_2": "MEETS NOW",
+        "subtitle": "Unisex staples born from vintage heritage reimagined with a modern edge. Premium fabrics made for today.",
+        "cta_label": "Shop Collection",
+        "cta_url": "/collections/all",
+        "cta_secondary_label": "Our Story",
+        "cta_secondary_url": "/pages/about",
+        "overlay_opacity": 60,
+        "content_max_width": 580
+      }
+    }
+  },
+  "order": [
+    "hero-banner"
+  ]
+}
