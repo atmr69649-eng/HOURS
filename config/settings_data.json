@@ -1,20 +1,57 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "current": {
-    "color_bg":             "#0B0B0B",
-    "color_surface":        "#141414",
-    "color_text":           "#F5F5F7",
-    "color_text_muted":     "#8E8E93",
-    "color_gold":           "#C89D54",
-    "color_azure":          "#007FFF",
-    "logo_width":           120,
-    "main_menu_handle":     "main-menu",
-    "secondary_menu_handle":"footer",
-    "cart_type":            "drawer",
+    "logo_width": 120,
+    "color_bg": "#0B0B0B",
+    "color_surface": "#141414",
+    "color_text": "#F5F5F7",
+    "color_text_muted": "#8E8E93",
+    "color_gold": "#C89D54",
+    "color_azure": "#007FFF",
+    "main_menu_handle": "main-menu",
+    "secondary_menu_handle": "footer",
+    "cart_type": "drawer",
     "free_shipping_threshold": 100,
     "enable_predictive_search": true,
-    "show_vendor":          false,
-    "show_rating":          false,
-    "image_ratio":          "portrait",
-    "show_quick_add":       true
+    "show_vendor": false,
+    "show_rating": false,
+    "image_ratio": "portrait",
+    "show_quick_add": true,
+    "sections": {
+      "header": {
+        "type": "header",
+        "settings": {
+          "logo_width": 140,
+          "logo_height": 48,
+          "dropdown_label": "Shop Collection",
+          "label_all": "All Products",
+          "link_all": "",
+          "label_hoodies": "Hoodies",
+          "link_hoodies": "",
+          "label_tshirts": "T-Shirts",
+          "link_tshirts": "",
+          "label_sweatpants": "Sweatpants",
+          "link_sweatpants": ""
+        }
+      },
+      "footer": {
+        "type": "footer",
+        "settings": {
+          "brand_description": "Premium unisex streetwear crafted for the bold. Elevated basics, intentional design.",
+          "shop_menu": "",
+          "info_menu": "",
+          "newsletter_subtitle": "Early drops, exclusive restocks. No spam."
+        }
+      }
+    },
+    "content_for_index": []
   }
 }

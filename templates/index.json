@@ -1,18 +1,29 @@
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
 {
   "sections": {
     "hero-banner": {
       "type": "hero-banner",
       "settings": {
-        "eyebrow": "New Collection — SS 2025",
+        "hero_image": "shopify://shop_images/WhatsApp_Image_2026-09-17_at_4.46.42_PM.jpg",
+        "hero_video_url": "",
+        "overlay_opacity": 60,
+        "eyebrow": "something out of a — museum",
         "title_line_1": "TIMELESS",
         "title_line_2": "MEETS NOW",
         "subtitle": "Unisex staples born from vintage heritage reimagined with a modern edge. Premium fabrics made for today.",
+        "content_max_width": 580,
         "cta_label": "Shop Collection",
         "cta_url": "/collections/all",
         "cta_secondary_label": "Our Story",
-        "cta_secondary_url": "/pages/about",
-        "overlay_opacity": 60,
-        "content_max_width": 580
+        "cta_secondary_url": "/pages/about"
       }
     }
   },
