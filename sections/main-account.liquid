@@ -1,0 +1,110 @@
+{% comment %}
+  sections/main-account.liquid
+  Native Shopify Legacy Customer Account Dashboard — order history & addresses.
+{% endcomment %}
+
+<section
+  id="MainAccount-{{ section.id }}"
+  class="customer-section section-spacing"
+  aria-label="{{ 'customer.account.title' | t }}">
+  <div class="container">
+
+    <div class="customer-header">
+      <div>
+        <div class="section-title-line">
+          <h1 class="section-title">{{ 'customer.account.title' | t }}</h1>
+        </div>
+        {% if customer.name != blank %}
+          <p class="customer-subtitle">{{ customer.name | escape }}</p>
+        {% endif %}
+      </div>
+      <a href="{{ routes.account_logout_url }}" class="btn btn-outline customer-logout-btn">
+        {{ 'customer.log_out' | t }}
+      </a>
+    </div>
+
+    <div class="customer-account-grid">
+      <!-- Order History -->
+      <div class="customer-orders-col">
+        <h2 class="customer-section-heading">{{ 'customer.orders.title' | t }}</h2>
+
+        {% paginate customer.orders by 20 %}
+          {% if customer.orders.size > 0 %}
+            <div class="customer-table-wrap">
+              <table class="customer-table">
+                <thead>
+                  <tr>
+                    <th scope="col">{{ 'customer.orders.order_number' | t }}</th>
+                    <th scope="col">{{ 'customer.orders.date' | t }}</th>
+                    <th scope="col">{{ 'customer.orders.payment_status' | t }}</th>
+                    <th scope="col">{{ 'customer.orders.fulfillment_status' | t }}</th>
+                    <th scope="col">{{ 'customer.orders.total' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for order in customer.orders %}
+                    <tr>
+                      <td data-label="{{ 'customer.orders.order_number' | t }}">
+                        <a href="{{ order.customer_url }}" class="customer-order-link">
+                          {{ order.name }}
+                        </a>
+                      </td>
+                      <td data-label="{{ 'customer.orders.date' | t }}">
+                        {{ order.created_at | time_tag: format: 'date' }}
+                      </td>
+                      <td data-label="{{ 'customer.orders.payment_status' | t }}">
+                        {{ order.financial_status_label }}
+                      </td>
+                      <td data-label="{{ 'customer.orders.fulfillment_status' | t }}">
+                        {{ order.fulfillment_status_label }}
+                      </td>
+                      <td data-label="{{ 'customer.orders.total' | t }}" class="customer-table-total">
+                        {{ order.total_net_amount | money_with_currency }}
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            {% render 'pagination', paginate: paginate %}
+          {% else %}
+            <div class="customer-empty-box">
+              <p>{{ 'customer.orders.none' | t }}</p>
+              <a href="{{ routes.all_products_collection_url }}" class="btn btn-gold">
+                {{ 'collections.general.browse_all' | t }}
+              </a>
+            </div>
+          {% endif %}
+        {% endpaginate %}
+      </div>
+
+      <!-- Account Details & Default Address -->
+      <aside class="customer-details-col">
+        <div class="horus-form-card">
+          <h2 class="customer-section-heading">{{ 'customer.account.details' | t }}</h2>
+          <div class="customer-address-text">
+            {% if customer.default_address %}
+              {{ customer.default_address | format_address }}
+            {% else %}
+              <p class="text-muted">{{ customer.email | escape }}</p>
+            {% endif %}
+          </div>
+          <a href="{{ routes.account_addresses_url }}" class="btn btn-outline btn-full">
+            {{ 'customer.account.view_addresses' | t }} ({{ customer.addresses_count }})
+          </a>
+        </div>
+      </aside>
+    </div>
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Customer Account",
+  "tag": "section",
+  "class": "main-account-wrapper",
+  "settings": []
+}
+{% endschema %}

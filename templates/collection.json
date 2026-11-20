@@ -1,14 +1,14 @@
 {
   "sections": {
+    "collection-banner": {
+      "type": "collection-banner",
+      "settings": {
+        "show_description": true
+      }
+    },
     "collection-tabs": {
       "type": "collection-tabs",
       "blocks": {
-        "tab-all": {
-          "type": "category_tab",
-          "settings": {
-            "label": "All Products"
-          }
-        },
         "tab-hoodies": {
           "type": "category_tab",
           "settings": {
@@ -29,19 +29,22 @@
         }
       },
       "block_order": [
-        "tab-all",
         "tab-hoodies",
         "tab-tshirts",
         "tab-sweatpants"
       ],
       "settings": {
-        "section_title": "The Drop",
-        "show_view_all": false,
-        "items_per_page": 12
+        "section_title": "",
+        "items_per_page": 16,
+        "show_all_tab": true,
+        "enable_filtering": true,
+        "enable_sorting": true,
+        "show_view_all": false
       }
     }
   },
   "order": [
+    "collection-banner",
     "collection-tabs"
   ]
 }

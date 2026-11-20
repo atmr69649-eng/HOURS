@@ -1,0 +1,23 @@
+{
+  "sections": {
+    "main-page": {
+      "type": "main-page",
+      "settings": {
+        "show_breadcrumb": true,
+        "show_title": true,
+        "content_width": "narrow"
+      }
+    },
+    "collapsible-content": {
+      "type": "collapsible-content",
+      "settings": {
+        "heading": "",
+        "subheading": ""
+      }
+    }
+  },
+  "order": [
+    "main-page",
+    "collapsible-content"
+  ]
+}

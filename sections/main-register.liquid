@@ -1,0 +1,104 @@
+{% comment %}
+  sections/main-register.liquid
+  Native Shopify Legacy Customer Registration section.
+{% endcomment %}
+
+<section
+  id="MainRegister-{{ section.id }}"
+  class="customer-section section-spacing"
+  aria-label="{{ 'customer.register.title' | t }}">
+  <div class="container customer-auth-container">
+    <div class="horus-form-card">
+      <h1 class="customer-auth-title">{{ 'customer.register.title' | t }}</h1>
+
+      {% form 'create_customer', class: 'horus-form' %}
+        {% if form.errors %}
+          <div class="form-status form-status-error" role="alert" tabindex="-1" autofocus>
+            {{ form.errors | default_errors }}
+          </div>
+        {% endif %}
+
+        <div class="horus-form-grid">
+          <div class="form-field">
+            <label for="RegisterForm-FirstName" class="form-label">
+              {{ 'customer.register.first_name' | t }}
+            </label>
+            <input
+              type="text"
+              id="RegisterForm-FirstName"
+              name="customer[first_name]"
+              class="form-input"
+              autocomplete="given-name"
+              {% if form.first_name %}value="{{ form.first_name | escape }}"{% endif %}
+              placeholder="{{ 'customer.register.first_name' | t }}">
+          </div>
+
+          <div class="form-field">
+            <label for="RegisterForm-LastName" class="form-label">
+              {{ 'customer.register.last_name' | t }}
+            </label>
+            <input
+              type="text"
+              id="RegisterForm-LastName"
+              name="customer[last_name]"
+              class="form-input"
+              autocomplete="family-name"
+              {% if form.last_name %}value="{{ form.last_name | escape }}"{% endif %}
+              placeholder="{{ 'customer.register.last_name' | t }}">
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label for="RegisterForm-email" class="form-label">
+            {{ 'customer.register.email' | t }} <span class="form-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="email"
+            id="RegisterForm-email"
+            name="customer[email]"
+            class="form-input"
+            autocomplete="email"
+            spellcheck="false"
+            autocapitalize="off"
+            required
+            aria-required="true"
+            {% if form.email %}value="{{ form.email | escape }}"{% endif %}
+            placeholder="{{ 'customer.register.email' | t }}">
+        </div>
+
+        <div class="form-field">
+          <label for="RegisterForm-password" class="form-label">
+            {{ 'customer.register.password' | t }} <span class="form-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="password"
+            id="RegisterForm-password"
+            name="customer[password]"
+            class="form-input"
+            autocomplete="new-password"
+            required
+            aria-required="true"
+            placeholder="{{ 'customer.register.password' | t }}">
+        </div>
+
+        <div class="horus-form-actions customer-auth-actions">
+          <button type="submit" class="btn btn-gold btn-full">
+            {{ 'customer.register.submit' | t }}
+          </button>
+          <a href="{{ routes.account_login_url }}" class="customer-text-link">
+            {{ 'customer.register.have_account' | t }} {{ 'customer.log_in' | t }}
+          </a>
+        </div>
+      {% endform %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Customer Register",
+  "tag": "section",
+  "class": "main-register-wrapper",
+  "settings": []
+}
+{% endschema %}

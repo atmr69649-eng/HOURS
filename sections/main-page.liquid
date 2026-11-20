@@ -1,0 +1,175 @@
+{% comment %}
+  sections/main-page.liquid
+  Reusable HORUS Online Store 2.0 Page section (serves About Us, Size Guide,
+  and all standard Shopify Admin pages). Supports Admin rich text, responsive
+  measurement tables, and optional Theme Editor content blocks.
+{% endcomment %}
+
+<section
+  id="MainPage-{{ section.id }}"
+  class="page-section section-spacing"
+  aria-label="{{ page.title | escape }}">
+  <div class="container page-container page-container--{{ section.settings.content_width }}">
+
+    {% if section.settings.show_breadcrumb %}
+      <nav class="pdp-breadcrumb page-breadcrumb" aria-label="{{ 'general.breadcrumbs.label' | t }}">
+        <ol class="pdp-breadcrumb-list">
+          <li>
+            <a href="{{ routes.root_url }}" class="pdp-breadcrumb-link">{{ 'general.breadcrumbs.home' | t }}</a>
+          </li>
+          <li aria-hidden="true" class="pdp-breadcrumb-sep">/</li>
+          <li class="pdp-breadcrumb-current" aria-current="page">{{ page.title }}</li>
+        </ol>
+      </nav>
+    {% endif %}
+
+    {% if section.settings.show_title %}
+      <header class="page-header">
+        <h1 class="page-title">{{ page.title }}</h1>
+      </header>
+    {% endif %}
+
+    {% if page.content != blank %}
+      <div class="page-content rte" data-rte-tables>
+        {{ page.content }}
+      </div>
+    {% endif %}
+
+    {% if section.blocks.size > 0 %}
+      <div class="page-blocks">
+        {% for block in section.blocks %}
+          {% case block.type %}
+            {% when 'rich_text' %}
+              {% if block.settings.heading != blank or block.settings.body != blank %}
+                <div class="page-rich-block" {{ block.shopify_attributes }}>
+                  {% if block.settings.heading != blank %}
+                    <h2 class="page-block-heading">{{ block.settings.heading | escape }}</h2>
+                  {% endif %}
+                  {% if block.settings.body != blank %}
+                    <div class="rte" data-rte-tables>
+                      {{ block.settings.body }}
+                    </div>
+                  {% endif %}
+                </div>
+              {% endif %}
+
+            {% when 'image_with_text' %}
+              {% if block.settings.image != blank or block.settings.heading != blank or block.settings.body != blank %}
+                {%- assign split_alt = block.settings.image.alt | default: block.settings.heading | default: page.title | escape -%}
+                <div class="page-split-block{% if block.settings.image_position == 'right' %} page-split-block--reverse{% endif %}" {{ block.shopify_attributes }}>
+                  {% if block.settings.image != blank %}
+                    <div class="page-split-media">
+                      {{
+                        block.settings.image
+                        | image_url: width: 1000
+                        | image_tag:
+                          alt: split_alt,
+                          width: block.settings.image.width,
+                          height: block.settings.image.height,
+                          widths: '400, 600, 800, 1000',
+                          sizes: '(min-width: 768px) 48vw, 100vw',
+                          loading: 'lazy'
+                      }}
+                    </div>
+                  {% endif %}
+                  <div class="page-split-content">
+                    {% if block.settings.heading != blank %}
+                      <h2 class="page-block-heading">{{ block.settings.heading | escape }}</h2>
+                    {% endif %}
+                    {% if block.settings.body != blank %}
+                      <div class="rte" data-rte-tables>
+                        {{ block.settings.body }}
+                      </div>
+                    {% endif %}
+                  </div>
+                </div>
+              {% endif %}
+          {% endcase %}
+        {% endfor %}
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Page Content",
+  "tag": "section",
+  "class": "main-page-wrapper",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumb",
+      "label": "Show breadcrumb navigation",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_title",
+      "label": "Show page title",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "content_width",
+      "label": "Content width",
+      "options": [
+        { "value": "narrow", "label": "Editorial (820px)" },
+        { "value": "medium", "label": "Medium (1000px)" },
+        { "value": "wide",   "label": "Wide (1280px)" }
+      ],
+      "default": "narrow"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "rich_text",
+      "name": "Editable Content Block",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Body content"
+        }
+      ]
+    },
+    {
+      "type": "image_with_text",
+      "name": "Image & Text Block",
+      "settings": [
+        {
+          "type": "image_picker",
+          "id": "image",
+          "label": "Image"
+        },
+        {
+          "type": "select",
+          "id": "image_position",
+          "label": "Image position (desktop)",
+          "options": [
+            { "value": "left",  "label": "Left" },
+            { "value": "right", "label": "Right" }
+          ],
+          "default": "left"
+        },
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "body",
+          "label": "Body content"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

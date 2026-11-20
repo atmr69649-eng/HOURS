@@ -1,0 +1,62 @@
+{% comment %}
+  sections/main-404.liquid
+  Branded HORUS 404 Not Found page with native Shopify routes.
+{% endcomment %}
+
+<section
+  id="Main404-{{ section.id }}"
+  class="not-found-section section-spacing"
+  aria-label="{{ 'general.404.title' | t }}">
+  <div class="container">
+    <div class="not-found-card">
+      <p class="not-found-code" aria-hidden="true">{{ 'general.404.code' | t }}</p>
+      <h1 class="not-found-title">
+        {%- if section.settings.heading != blank -%}
+          {{ section.settings.heading | escape }}
+        {%- else -%}
+          {{ 'general.404.title' | t }}
+        {%- endif -%}
+      </h1>
+      <p class="not-found-subtext">
+        {%- if section.settings.subtext != blank -%}
+          {{ section.settings.subtext | escape }}
+        {%- else -%}
+          {{ 'general.404.subtext' | t }}
+        {%- endif -%}
+      </p>
+
+      <div class="not-found-actions">
+        <a href="{{ routes.root_url }}" class="btn btn-gold">
+          {{ 'general.404.return_home' | t }}
+        </a>
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn-outline">
+          {{ 'general.404.browse_collection' | t }}
+        </a>
+      </div>
+
+      <a href="{{ routes.search_url }}" class="not-found-search-link">
+        {{ 'general.404.search_store' | t }} →
+      </a>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "404 Not Found",
+  "tag": "section",
+  "class": "main-404-wrapper",
+  "settings": [
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Optional custom heading"
+    },
+    {
+      "type": "textarea",
+      "id": "subtext",
+      "label": "Optional custom message"
+    }
+  ]
+}
+{% endschema %}

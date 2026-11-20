@@ -1,0 +1,252 @@
+{% comment %}
+  sections/main-addresses.liquid
+  Native Shopify Legacy Customer Addresses section — add, edit, set default,
+  and delete saved addresses with Shopify's native CountryProvinceSelector.
+{% endcomment %}
+
+<section
+  id="MainAddresses-{{ section.id }}"
+  class="customer-section section-spacing"
+  data-customer-addresses
+  aria-label="{{ 'customer.addresses.title' | t }}">
+  <div class="container">
+
+    <div class="customer-header">
+      <div>
+        <a href="{{ routes.account_url }}" class="section-link customer-back-link">
+          ← {{ 'customer.account.return' | t }}
+        </a>
+        <div class="section-title-line">
+          <h1 class="section-title">{{ 'customer.addresses.title' | t }}</h1>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add New Address (accessible native <details>) -->
+    <details class="horus-form-card customer-new-address">
+      <summary class="btn btn-gold customer-new-address-trigger">
+        {{ 'customer.addresses.add_new' | t }}
+      </summary>
+
+      <div class="customer-address-form-wrap">
+        {% form 'customer_address', customer.new_address, class: 'horus-form' %}
+          <div class="horus-form-grid">
+            <div class="form-field">
+              <label for="AddressFirstNameNew" class="form-label">{{ 'customer.addresses.first_name' | t }}</label>
+              <input type="text" id="AddressFirstNameNew" name="address[first_name]" class="form-input" value="{{ form.first_name }}" autocomplete="given-name">
+            </div>
+            <div class="form-field">
+              <label for="AddressLastNameNew" class="form-label">{{ 'customer.addresses.last_name' | t }}</label>
+              <input type="text" id="AddressLastNameNew" name="address[last_name]" class="form-input" value="{{ form.last_name }}" autocomplete="family-name">
+            </div>
+          </div>
+
+          <div class="form-field">
+            <label for="AddressCompanyNew" class="form-label">{{ 'customer.addresses.company' | t }}</label>
+            <input type="text" id="AddressCompanyNew" name="address[company]" class="form-input" value="{{ form.company }}" autocomplete="organization">
+          </div>
+
+          <div class="form-field">
+            <label for="AddressAddress1New" class="form-label">{{ 'customer.addresses.address1' | t }}</label>
+            <input type="text" id="AddressAddress1New" name="address[address1]" class="form-input" value="{{ form.address1 }}" autocomplete="address-line1">
+          </div>
+
+          <div class="form-field">
+            <label for="AddressAddress2New" class="form-label">{{ 'customer.addresses.address2' | t }}</label>
+            <input type="text" id="AddressAddress2New" name="address[address2]" class="form-input" value="{{ form.address2 }}" autocomplete="address-line2">
+          </div>
+
+          <div class="horus-form-grid">
+            <div class="form-field">
+              <label for="AddressCityNew" class="form-label">{{ 'customer.addresses.city' | t }}</label>
+              <input type="text" id="AddressCityNew" name="address[city]" class="form-input" value="{{ form.city }}" autocomplete="address-level2">
+            </div>
+            <div class="form-field">
+              <label for="AddressCountryNew" class="form-label">{{ 'customer.addresses.country' | t }}</label>
+              <select
+                id="AddressCountryNew"
+                name="address[country]"
+                class="form-input"
+                data-default="{{ form.country }}"
+                data-address-country-select
+                data-form-id="New"
+                autocomplete="country">
+                {{ all_country_option_tags }}
+              </select>
+            </div>
+          </div>
+
+          <div id="AddressProvinceContainerNew" class="form-field" style="display:none;">
+            <label for="AddressProvinceNew" class="form-label">{{ 'customer.addresses.province' | t }}</label>
+            <select
+              id="AddressProvinceNew"
+              name="address[province]"
+              class="form-input"
+              data-default="{{ form.province }}"
+              autocomplete="address-level1">
+            </select>
+          </div>
+
+          <div class="horus-form-grid">
+            <div class="form-field">
+              <label for="AddressZipNew" class="form-label">{{ 'customer.addresses.zip' | t }}</label>
+              <input type="text" id="AddressZipNew" name="address[zip]" class="form-input" value="{{ form.zip }}" autocapitalize="characters" autocomplete="postal-code">
+            </div>
+            <div class="form-field">
+              <label for="AddressPhoneNew" class="form-label">{{ 'customer.addresses.phone' | t }}</label>
+              <input type="tel" id="AddressPhoneNew" name="address[phone]" class="form-input" value="{{ form.phone }}" autocomplete="tel">
+            </div>
+          </div>
+
+          <label class="customer-checkbox-row" for="address_default_address_new">
+            {{ form.set_as_default_checkbox }}
+            <span>{{ 'customer.addresses.set_default' | t }}</span>
+          </label>
+
+          <div class="horus-form-actions">
+            <button type="submit" class="btn btn-gold">{{ 'customer.addresses.add' | t }}</button>
+          </div>
+        {% endform %}
+      </div>
+    </details>
+
+    <!-- Saved Addresses List -->
+    {% paginate customer.addresses by 10 %}
+      {% if customer.addresses.size > 0 %}
+        <div class="customer-addresses-grid">
+          {% for address in customer.addresses %}
+            <div class="horus-form-card customer-address-card">
+              {% if address == customer.default_address %}
+                <span class="card-badge card-badge-new customer-default-badge">
+                  {{ 'customer.addresses.default' | t }}
+                </span>
+              {% endif %}
+
+              <div class="customer-address-text">
+                {{ address | format_address }}
+              </div>
+
+              <div class="customer-address-actions">
+                <details class="customer-edit-details">
+                  <summary class="btn btn-outline customer-action-btn">
+                    {{ 'customer.addresses.edit' | t }}
+                  </summary>
+
+                  <div class="customer-address-form-wrap">
+                    {% form 'customer_address', address, class: 'horus-form' %}
+                      <div class="horus-form-grid">
+                        <div class="form-field">
+                          <label for="AddressFirstName_{{ form.id }}" class="form-label">{{ 'customer.addresses.first_name' | t }}</label>
+                          <input type="text" id="AddressFirstName_{{ form.id }}" name="address[first_name]" class="form-input" value="{{ form.first_name }}" autocomplete="given-name">
+                        </div>
+                        <div class="form-field">
+                          <label for="AddressLastName_{{ form.id }}" class="form-label">{{ 'customer.addresses.last_name' | t }}</label>
+                          <input type="text" id="AddressLastName_{{ form.id }}" name="address[last_name]" class="form-input" value="{{ form.last_name }}" autocomplete="family-name">
+                        </div>
+                      </div>
+
+                      <div class="form-field">
+                        <label for="AddressCompany_{{ form.id }}" class="form-label">{{ 'customer.addresses.company' | t }}</label>
+                        <input type="text" id="AddressCompany_{{ form.id }}" name="address[company]" class="form-input" value="{{ form.company }}" autocomplete="organization">
+                      </div>
+
+                      <div class="form-field">
+                        <label for="AddressAddress1_{{ form.id }}" class="form-label">{{ 'customer.addresses.address1' | t }}</label>
+                        <input type="text" id="AddressAddress1_{{ form.id }}" name="address[address1]" class="form-input" value="{{ form.address1 }}" autocomplete="address-line1">
+                      </div>
+
+                      <div class="form-field">
+                        <label for="AddressAddress2_{{ form.id }}" class="form-label">{{ 'customer.addresses.address2' | t }}</label>
+                        <input type="text" id="AddressAddress2_{{ form.id }}" name="address[address2]" class="form-input" value="{{ form.address2 }}" autocomplete="address-line2">
+                      </div>
+
+                      <div class="horus-form-grid">
+                        <div class="form-field">
+                          <label for="AddressCity_{{ form.id }}" class="form-label">{{ 'customer.addresses.city' | t }}</label>
+                          <input type="text" id="AddressCity_{{ form.id }}" name="address[city]" class="form-input" value="{{ form.city }}" autocomplete="address-level2">
+                        </div>
+                        <div class="form-field">
+                          <label for="AddressCountry_{{ form.id }}" class="form-label">{{ 'customer.addresses.country' | t }}</label>
+                          <select
+                            id="AddressCountry_{{ form.id }}"
+                            name="address[country]"
+                            class="form-input"
+                            data-default="{{ form.country }}"
+                            data-address-country-select
+                            data-form-id="_{{ form.id }}"
+                            autocomplete="country">
+                            {{ all_country_option_tags }}
+                          </select>
+                        </div>
+                      </div>
+
+                      <div id="AddressProvinceContainer_{{ form.id }}" class="form-field" style="display:none;">
+                        <label for="AddressProvince_{{ form.id }}" class="form-label">{{ 'customer.addresses.province' | t }}</label>
+                        <select
+                          id="AddressProvince_{{ form.id }}"
+                          name="address[province]"
+                          class="form-input"
+                          data-default="{{ form.province }}"
+                          autocomplete="address-level1">
+                        </select>
+                      </div>
+
+                      <div class="horus-form-grid">
+                        <div class="form-field">
+                          <label for="AddressZip_{{ form.id }}" class="form-label">{{ 'customer.addresses.zip' | t }}</label>
+                          <input type="text" id="AddressZip_{{ form.id }}" name="address[zip]" class="form-input" value="{{ form.zip }}" autocapitalize="characters" autocomplete="postal-code">
+                        </div>
+                        <div class="form-field">
+                          <label for="AddressPhone_{{ form.id }}" class="form-label">{{ 'customer.addresses.phone' | t }}</label>
+                          <input type="tel" id="AddressPhone_{{ form.id }}" name="address[phone]" class="form-input" value="{{ form.phone }}" autocomplete="tel">
+                        </div>
+                      </div>
+
+                      <label class="customer-checkbox-row" for="address_default_address_{{ form.id }}">
+                        {{ form.set_as_default_checkbox }}
+                        <span>{{ 'customer.addresses.set_default' | t }}</span>
+                      </label>
+
+                      <div class="horus-form-actions">
+                        <button type="submit" class="btn btn-gold">{{ 'customer.addresses.update' | t }}</button>
+                      </div>
+                    {% endform %}
+                  </div>
+                </details>
+
+                <form
+                  method="post"
+                  action="{{ routes.account_addresses_url }}/{{ address.id }}"
+                  data-address-delete-form
+                  data-confirm-message="{{ 'customer.addresses.delete_confirm' | t | escape }}">
+                  <input type="hidden" name="_method" value="delete">
+                  <button type="submit" class="btn btn-outline customer-action-btn customer-delete-btn">
+                    {{ 'customer.addresses.delete' | t }}
+                  </button>
+                </form>
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+
+        {% render 'pagination', paginate: paginate %}
+      {% else %}
+        <div class="customer-empty-box">
+          <p>{{ 'customer.addresses.none' | t }}</p>
+        </div>
+      {% endif %}
+    {% endpaginate %}
+
+  </div>
+
+  <script src="{{ 'shopify_common.js' | shopify_asset_url }}" defer></script>
+</section>
+
+{% schema %}
+{
+  "name": "Customer Addresses",
+  "tag": "section",
+  "class": "main-addresses-wrapper",
+  "settings": []
+}
+{% endschema %}

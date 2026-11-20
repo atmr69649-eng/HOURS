@@ -1,158 +1,223 @@
 {% comment %}
   sections/collection-tabs.liquid
-  Horizontal-swipeable category filter tabs + product grid
+  HORUS Collection Grid — native Shopify collection category navigation tabs,
+  native storefront filtering & sorting (snippets/facets.liquid), native
+  {% paginate %} pagination (snippets/pagination.liquid), and clean empty states.
 {% endcomment %}
 
 {%- liquid
-  assign tab_all_label   = 'All'
-  assign tab_items_limit = section.settings.items_per_page | default: 8
+  assign products_per_page = section.settings.items_per_page | default: 16
 
-  # Smart context: use the current collection page if available, else fall back to collections.all
   if collection and collection.handle != blank
     assign source_collection = collection
   else
     assign source_collection = collections.all
   endif
 
-  # Build tab list from blocks; fall back to hardcoded defaults
-  assign has_blocks = false
-  if section.blocks.size > 0
-    assign has_blocks = true
-  endif
+  assign all_collection = collections.all
+  assign has_active_filters = false
+  for filter in source_collection.filters
+    if filter.type == 'price_range'
+      if filter.min_value.value != nil or filter.max_value.value != nil
+        assign has_active_filters = true
+      endif
+    elsif filter.active_values.size > 0
+      assign has_active_filters = true
+    endif
+  endfor
+
+  # Count how many valid category tabs exist so we never render an empty/broken tab strip
+  assign valid_tab_count = 0
+  for block in section.blocks
+    if block.type == 'category_tab'
+      assign check_col = block.settings.collection
+      if check_col == blank and block.settings.label != blank
+        assign label_handle = block.settings.label | handle
+        assign check_col = collections[label_handle]
+      endif
+      if check_col != blank and check_col.handle != 'all'
+        assign valid_tab_count = valid_tab_count | plus: 1
+      endif
+    endif
+  endfor
 -%}
 
 <section
   id="collection-tabs"
   class="collection-tabs-section section-spacing"
-  aria-label="Product categories">
+  aria-label="{{ source_collection.title | default: 'Collection' | escape }}">
   <div class="container">
 
-    <!-- Section Header -->
-    <div class="section-header">
-      <div>
-        <div class="section-title-line">
-          <h2 class="section-title">{{ section.settings.section_title | default: 'The Drop' }}</h2>
-        </div>
-      </div>
-      {% if section.settings.show_view_all %}
-        <a href="{{ section.settings.view_all_url | default: routes.root_url }}" class="section-link" aria-label="View all products">
-          View All →
-        </a>
-      {% endif %}
-    </div>
-
-    <!-- Tab Pills -->
-    <div class="tabs-scroll" role="tablist" aria-label="Product categories">
-      <button
-        class="tab-pill active"
-        data-tab="all"
-        role="tab"
-        aria-selected="true"
-        aria-controls="products-grid">
-        {{ tab_all_label }}
-        <span class="tab-pill-count" aria-label="{{ source_collection.products_count }} products">
-          {{ source_collection.products_count | default: '∞' }}
-        </span>
-      </button>
-
-      {% if has_blocks %}
-        {% for block in section.blocks %}
-          {% if block.type == 'category_tab' %}
-            {%- assign tab_collection = collections[block.settings.collection] -%}
-            <button
-              class="tab-pill"
-              data-tab="{{ block.settings.collection | handle }}"
-              role="tab"
-              aria-selected="false"
-              {{ block.shopify_attributes }}>
-              {{ block.settings.label | default: tab_collection.title }}
-              {% if tab_collection.products_count > 0 %}
-                <span class="tab-pill-count">{{ tab_collection.products_count }}</span>
-              {% endif %}
-            </button>
-          {% endif %}
-        {% endfor %}
-      {% else %}
-        <!-- Default tabs if no blocks configured -->
-        <button class="tab-pill" data-tab="hoodies" role="tab" aria-selected="false">Hoodies</button>
-        <button class="tab-pill" data-tab="t-shirts" role="tab" aria-selected="false">T-Shirts</button>
-        <button class="tab-pill" data-tab="sweatpants" role="tab" aria-selected="false">Sweatpants</button>
-        <button class="tab-pill" data-tab="accessories" role="tab" aria-selected="false">Accessories</button>
-      {% endif %}
-    </div>
-
-    <!-- Products Grid -->
-    <div
-      id="products-grid"
-      class="products-grid"
-      role="tabpanel"
-      aria-label="Products">
-
-      {%- assign all_products = source_collection.products -%}
-
-      {% if all_products.size > 0 %}
-        {% for product in all_products limit: tab_items_limit %}
-          <div
-            class="product-item animate-fade-in"
-            data-category="{{ product.type | handle }}"
-            style="animation-delay: {{ forloop.index0 | times: 40 }}ms;">
-            {% render 'product-card', product: product %}
-          </div>
-        {% endfor %}
-      {% else %}
-        <!-- Placeholder skeleton cards -->
-        {% for i in (1..8) %}
-          <div class="product-item" data-category="{% cycle 'hoodies', 't-shirts', 'sweatpants', 'accessories' %}">
-            <div class="product-card">
-              <div class="card-image-wrap loading" style="aspect-ratio:3/4;"></div>
-              <div class="card-info">
-                <div style="height:14px;background:var(--color-surface-3);border-radius:4px;margin-bottom:8px;"></div>
-                <div style="height:18px;background:var(--color-surface-3);border-radius:4px;width:60%;"></div>
-              </div>
+    <!-- Optional Section Header -->
+    {% if section.settings.section_title != blank or section.settings.show_view_all %}
+      <div class="section-header">
+        <div>
+          {% if section.settings.section_title != blank %}
+            <div class="section-title-line">
+              <h2 class="section-title">{{ section.settings.section_title }}</h2>
             </div>
-          </div>
-        {% endfor %}
-      {% endif %}
-    </div>
-
-    <!-- Load More -->
-    {% if section.settings.show_view_all and all_products.size > tab_items_limit %}
-      <div class="load-more-wrap">
-        <a href="{{ section.settings.view_all_url | default: '/collections/all' }}" class="btn btn-outline">
-          Load More
-        </a>
+          {% endif %}
+        </div>
+        {% if section.settings.show_view_all %}
+          <a
+            href="{{ section.settings.view_all_url | default: routes.all_products_collection_url }}"
+            class="section-link"
+            aria-label="View all products">
+            View All →
+          </a>
+        {% endif %}
       </div>
     {% endif %}
+
+    <!-- Category Navigation Tabs (native Shopify collection links) -->
+    {% if valid_tab_count > 0 %}
+      <nav class="tabs-scroll" aria-label="Product categories">
+        {% if section.settings.show_all_tab %}
+          {%- assign is_all_active = false -%}
+          {%- if source_collection.handle == 'all' -%}
+            {%- assign is_all_active = true -%}
+          {%- endif -%}
+          <a
+            href="{{ routes.all_products_collection_url }}"
+            class="tab-pill{% if is_all_active %} active{% endif %}"
+            {% if is_all_active %}aria-current="page"{% endif %}>
+            {{ 'collections.general.all' | t }}
+            {% if all_collection.products_count > 0 %}
+              <span class="tab-pill-count">{{ all_collection.products_count }}</span>
+            {% endif %}
+          </a>
+        {% endif %}
+
+        {% for block in section.blocks %}
+          {% if block.type == 'category_tab' %}
+            {%- liquid
+              assign tab_collection = block.settings.collection
+              if tab_collection == blank and block.settings.label != blank
+                assign fallback_handle = block.settings.label | handle
+                assign tab_collection = collections[fallback_handle]
+              endif
+            -%}
+            {% if tab_collection != blank and tab_collection.handle != 'all' %}
+              {%- assign is_tab_active = false -%}
+              {%- if source_collection.handle == tab_collection.handle -%}
+                {%- assign is_tab_active = true -%}
+              {%- endif -%}
+              <a
+                href="{{ tab_collection.url }}"
+                class="tab-pill{% if is_tab_active %} active{% endif %}"
+                {% if is_tab_active %}aria-current="page"{% endif %}
+                {{ block.shopify_attributes }}>
+                {{ block.settings.label | default: tab_collection.title }}
+                {% if tab_collection.products_count > 0 %}
+                  <span class="tab-pill-count">{{ tab_collection.products_count }}</span>
+                {% endif %}
+              </a>
+            {% endif %}
+          {% endif %}
+        {% endfor %}
+      </nav>
+    {% endif %}
+
+    <!-- Native Shopify Storefront Filtering & Sorting -->
+    {% render 'facets',
+      results: source_collection,
+      enable_filtering: section.settings.enable_filtering,
+      enable_sorting: section.settings.enable_sorting,
+      section_id: section.id
+    %}
+
+    <!-- Native Paginated Products Grid -->
+    {% paginate source_collection.products by products_per_page %}
+      {% if source_collection.products.size > 0 %}
+        <div
+          id="products-grid"
+          class="products-grid"
+          aria-label="Products">
+          {% for product in source_collection.products %}
+            <div
+              class="product-item animate-fade-in"
+              style="animation-delay: {{ forloop.index0 | times: 35 }}ms;">
+              {% render 'product-card', product: product %}
+            </div>
+          {% endfor %}
+        </div>
+
+        {% render 'pagination', paginate: paginate, anchor: '#collection-tabs' %}
+      {% else %}
+        <!-- Proper Empty Collection / Zero Filter Results State -->
+        <div class="collection-empty">
+          <div class="cart-empty">
+            <div class="cart-empty-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+              </svg>
+            </div>
+            {% if has_active_filters %}
+              <h2>{{ 'collections.general.empty_filtered' | t }}</h2>
+              <p>{{ 'collections.general.empty_hint' | t }}</p>
+              <a href="{{ source_collection.url | default: routes.all_products_collection_url }}" class="btn btn-gold">
+                {{ 'collections.filters.clear_all' | t }}
+              </a>
+            {% else %}
+              <h2>{{ 'collections.general.empty' | t }}</h2>
+              <p>{{ 'collections.general.empty_hint' | t }}</p>
+              <a href="{{ routes.all_products_collection_url }}" class="btn btn-gold">
+                {{ 'collections.general.browse_all' | t }}
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      {% endif %}
+    {% endpaginate %}
 
   </div>
 </section>
 
 {% schema %}
 {
-  "name": "Collection Tabs",
+  "name": "Collection Products",
   "tag": "section",
   "class": "collection-tabs-wrapper",
   "settings": [
     {
       "type": "text",
       "id": "section_title",
-      "label": "Section Title",
-      "default": "The Drop"
+      "label": "Optional Section Heading",
+      "info": "Leave blank when Collection Banner displays the collection title."
     },
     {
       "type": "range",
       "id": "items_per_page",
-      "min": 4,
-      "max": 24,
+      "min": 8,
+      "max": 48,
       "step": 4,
       "label": "Products per page",
-      "default": 8
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "show_all_tab",
+      "label": "Show 'All' collection tab",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "Enable Shopify storefront filtering",
+      "info": "Customize filters in Shopify Search & Discovery app.",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "Enable sorting",
+      "default": true
     },
     {
       "type": "checkbox",
       "id": "show_view_all",
       "label": "Show 'View All' link",
-      "default": true
+      "default": false
     },
     {
       "type": "url",
@@ -181,12 +246,7 @@
   ],
   "presets": [
     {
-      "name": "Collection Tabs",
-      "blocks": [
-        { "type": "category_tab", "settings": { "label": "Hoodies" } },
-        { "type": "category_tab", "settings": { "label": "T-Shirts" } },
-        { "type": "category_tab", "settings": { "label": "Sweatpants" } }
-      ]
+      "name": "Collection Products"
     }
   ]
 }

@@ -1,0 +1,23 @@
+{
+  "sections": {
+    "main-page": {
+      "type": "main-page",
+      "settings": {
+        "show_breadcrumb": true,
+        "show_title": true,
+        "content_width": "narrow"
+      }
+    },
+    "contact-form": {
+      "type": "contact-form",
+      "settings": {
+        "heading": "Send a Message",
+        "subheading": ""
+      }
+    }
+  },
+  "order": [
+    "main-page",
+    "contact-form"
+  ]
+}

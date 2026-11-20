@@ -19,7 +19,7 @@
     "main_menu_handle": "main-menu",
     "secondary_menu_handle": "footer",
     "cart_type": "drawer",
-    "free_shipping_threshold": 100,
+    "free_shipping_threshold": 0,
     "enable_predictive_search": true,
     "show_vendor": false,
     "show_rating": false,

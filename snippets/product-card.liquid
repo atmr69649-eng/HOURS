@@ -29,14 +29,41 @@
       assign is_limited = true
     endif
   endfor
+
+  # Pre-compute alt text: filters cannot be nested inside image_tag arguments
+  assign featured_alt = featured_img.alt | default: product.title | escape
+  assign hover_alt = hover_img.alt | default: product.title | escape
+
+  # Detect Color/Colour option for swatch & variant coordination
+  assign color_option = nil
+  assign color_option_index = nil
+  for option in product.options
+    assign option_name = option.name | default: option | downcase
+    if option_name == 'color' or option_name == 'colour'
+      assign color_option_index = forloop.index0
+      assign color_option = option
+      break
+    endif
+  endfor
+  assign active_color = nil
+  assign is_color_only = false
+  if color_option != nil
+    assign active_color = current_variant.options[color_option_index]
+    if product.options.size == 1
+      assign is_color_only = true
+    endif
+  endif
 -%}
 
 <article class="product-card" aria-label="{{ product.title | escape }}">
 
-  <!-- Image Wrapper -->
+  <!-- Image Wrapper (div so that interactive controls are not nested inside the link) -->
+  <div class="card-image-wrap">
+
+  <!-- Image Link -->
   <a
     href="{{ product.url }}"
-    class="card-image-wrap"
+    class="card-image-link"
     aria-label="View {{ product.title | escape }}"
     tabindex="-1">
 
@@ -47,11 +74,11 @@
         | image_url: width: 600
         | image_tag:
           class: 'card-img',
-          alt: featured_img.alt | default: product.title,
+          alt: featured_alt,
           width: 600,
           height: 800,
           loading: 'lazy',
-          data-src: featured_img | image_url: width: 600,
+          widths: '300, 450, 600',
           sizes: '(min-width: 1024px) 25vw, (min-width: 640px) 33vw, 50vw'
       }}
     {% else %}
@@ -67,13 +94,14 @@
         | image_url: width: 600
         | image_tag:
           class: 'card-img-hover',
-          alt: hover_img.alt | default: product.title,
+          alt: hover_alt,
           width: 600,
           height: 800,
           loading: 'lazy',
           aria-hidden: 'true'
       }}
     {% endif %}
+  </a>
 
     <!-- Badges -->
     <div class="card-badges" aria-label="Product badges">
@@ -96,6 +124,7 @@
 
     <!-- Wishlist -->
     <button
+      type="button"
       class="card-wishlist"
       aria-label="Add {{ product.title | escape }} to wishlist"
       data-wishlist-product="{{ product.id }}">
@@ -106,24 +135,61 @@
 
     <!-- Quick Add (hover on desktop, always visible on touch) -->
     <div class="card-quick-add" aria-label="Quick add options">
-      <!-- Size Pills -->
-      {% unless product.has_only_default_variant %}
-        <div class="quick-add-sizes" role="group" aria-label="Select size">
+      <!-- Size / Variant Pills (omitted for default-only and color-only products) -->
+      {% unless product.has_only_default_variant or is_color_only %}
+        <div class="quick-add-sizes" role="group" aria-label="Select option">
           {% for variant in product.variants %}
+            {%- liquid
+              assign pill_label = variant.title
+              if product.options.size > 1 and color_option_index != nil
+                assign non_color_parts = ''
+                for opt_val in variant.options
+                  if forloop.index0 != color_option_index
+                    if non_color_parts != ''
+                      assign non_color_parts = non_color_parts | append: ' / '
+                    endif
+                    assign non_color_parts = non_color_parts | append: opt_val
+                  endif
+                endfor
+                if non_color_parts != ''
+                  assign pill_label = non_color_parts
+                endif
+              endif
+              assign variant_color_handle = ''
+              assign hide_for_color = false
+              if color_option != nil
+                assign variant_color = variant.options[color_option_index]
+                assign variant_color_handle = variant_color | handle
+                if active_color != blank and variant_color != active_color
+                  assign hide_for_color = true
+                endif
+              endif
+            -%}
             {% if variant.available %}
               <button
-                class="size-pill {% if forloop.first %}selected{% endif %}"
+                type="button"
+                class="size-pill {% if variant.id == current_variant.id %}selected{% endif %}"
                 data-variant-id="{{ variant.id }}"
-                aria-label="Size {{ variant.title }}"
-                aria-pressed="{% if forloop.first %}true{% else %}false{% endif %}">
-                {{ variant.title | split: ' / ' | last }}
+                data-variant-price="{{ variant.price }}"
+                {% if variant.compare_at_price > variant.price %}data-variant-compare="{{ variant.compare_at_price }}"{% endif %}
+                {% if variant_color_handle != blank %}data-option-color="{{ variant_color_handle }}"{% endif %}
+                {% if hide_for_color %}hidden{% endif %}
+                aria-label="{{ variant.title | escape }}"
+                aria-pressed="{% if variant.id == current_variant.id %}true{% else %}false{% endif %}">
+                {{ pill_label }}
               </button>
             {% else %}
               <button
+                type="button"
                 class="size-pill unavailable"
-                aria-label="Size {{ variant.title }} — sold out"
+                data-variant-id="{{ variant.id }}"
+                data-variant-price="{{ variant.price }}"
+                {% if variant.compare_at_price > variant.price %}data-variant-compare="{{ variant.compare_at_price }}"{% endif %}
+                {% if variant_color_handle != blank %}data-option-color="{{ variant_color_handle }}"{% endif %}
+                {% if hide_for_color %}hidden{% endif %}
+                aria-label="{{ variant.title | escape }} — sold out"
                 disabled>
-                {{ variant.title | split: ' / ' | last }}
+                {{ pill_label }}
               </button>
             {% endif %}
           {% endfor %}
@@ -131,6 +197,7 @@
       {% endunless %}
 
       <button
+        type="button"
         class="btn btn-gold btn-full card-add-btn"
         data-add-to-cart
         data-variant-id="{{ current_variant.id }}"
@@ -138,41 +205,44 @@
         aria-label="Add {{ product.title | escape }} to cart">
         <span class="btn-text">
           {% if current_variant.available %}
-            Add to Cart
+            {{ 'products.product.add_to_cart' | t }}
           {% else %}
-            Sold Out
+            {{ 'products.product.sold_out' | t }}
           {% endif %}
         </span>
       </button>
     </div>
 
-  </a>
+  </div>
 
   <!-- Card Info -->
   <div class="card-info">
 
     <!-- Color Swatches -->
-    {% assign color_option = nil %}
-    {% for option in product.options %}
-      {% assign option_name = option.name | default: option | downcase %}
-      {% if option_name == 'color' or option_name == 'colour' %}
-        {% assign color_option_index = forloop.index0 %}
-        {% assign color_option = option %}
-      {% endif %}
-    {% endfor %}
-
     {% if color_option %}
       <div class="card-swatches" aria-label="Available colours" role="group">
-        {% assign colors_shown = '' %}
+        {% assign colors_shown = '|' %}
         {% for variant in product.variants %}
           {% assign this_color = variant.options[color_option_index] %}
-          {% unless colors_shown contains this_color %}
-            {% assign colors_shown = colors_shown | append: this_color | append: ',' %}
+          {% assign color_token = '|' | append: this_color | append: '|' %}
+          {% unless colors_shown contains color_token %}
+            {% assign colors_shown = colors_shown | append: this_color | append: '|' %}
+            {% assign is_active_color = false %}
+            {% if this_color == active_color %}
+              {% assign is_active_color = true %}
+            {% endif %}
             <button
-              class="swatch {% if forloop.first %}active{% endif %}"
+              type="button"
+              class="swatch {% if is_active_color %}active{% endif %}"
               style="background-color: {{ this_color | handle | replace: '-', '' }}; background-color: var(--swatch-{{ this_color | handle | replace: '-', '' }}, {{ this_color | downcase }});"
-              aria-label="{{ this_color }}"
-              data-color="{{ this_color | handle }}">
+              aria-label="{{ this_color | escape }}"
+              aria-pressed="{% if is_active_color %}true{% else %}false{% endif %}"
+              data-color="{{ this_color | handle }}"
+              data-variant-id="{{ variant.id }}"
+              data-variant-available="{{ variant.available }}"
+              data-variant-price="{{ variant.price }}"
+              {% if variant.compare_at_price > variant.price %}data-variant-compare="{{ variant.compare_at_price }}"{% endif %}
+              {% if variant.featured_image %}data-variant-img="{{ variant.featured_image | image_url: width: 600 }}"{% endif %}>
             </button>
           {% endunless %}
         {% endfor %}
@@ -188,11 +258,12 @@
         <span class="card-price">
           {{ current_variant.price | money }}
         </span>
-        {% if is_on_sale %}
-          <span class="card-price-compare" aria-label="Was {{ current_variant.compare_at_price | money }}">
-            {{ current_variant.compare_at_price | money }}
-          </span>
-        {% endif %}
+        <span
+          class="card-price-compare"
+          {% unless is_on_sale %}hidden{% endunless %}
+          {% if is_on_sale %}aria-label="Was {{ current_variant.compare_at_price | money }}"{% endif %}>
+          {% if is_on_sale %}{{ current_variant.compare_at_price | money }}{% endif %}
+        </span>
       </div>
 
       {% if product.variants.size > 1 %}
