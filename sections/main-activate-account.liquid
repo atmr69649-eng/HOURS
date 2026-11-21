@@ -1,0 +1,70 @@
+{% comment %}
+  sections/main-activate-account.liquid
+  Native Shopify Legacy Customer Account Activation section.
+{% endcomment %}
+
+<section
+  id="MainActivateAccount-{{ section.id }}"
+  class="customer-section section-spacing"
+  aria-label="{{ 'customer.activate_account.title' | t }}">
+  <div class="container customer-auth-container">
+    <div class="horus-form-card">
+      <h1 class="customer-auth-title">{{ 'customer.activate_account.title' | t }}</h1>
+      <p class="horus-form-subheading">{{ 'customer.activate_account.subtext' | t }}</p>
+
+      {% form 'activate_customer_password', class: 'horus-form' %}
+        {% if form.errors %}
+          <div class="form-status form-status-error" role="alert" tabindex="-1" autofocus>
+            {{ form.errors | default_errors }}
+          </div>
+        {% endif %}
+
+        <div class="form-field">
+          <label for="ActivatePassword" class="form-label">
+            {{ 'customer.activate_account.password' | t }} <span class="form-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="password"
+            id="ActivatePassword"
+            name="customer[password]"
+            class="form-input"
+            autocomplete="new-password"
+            required
+            aria-required="true">
+        </div>
+
+        <div class="form-field">
+          <label for="ActivatePasswordConfirm" class="form-label">
+            {{ 'customer.activate_account.password_confirm' | t }} <span class="form-required" aria-hidden="true">*</span>
+          </label>
+          <input
+            type="password"
+            id="ActivatePasswordConfirm"
+            name="customer[password_confirmation]"
+            class="form-input"
+            autocomplete="new-password"
+            required
+            aria-required="true">
+        </div>
+
+        <div class="horus-form-actions customer-auth-actions">
+          <button type="submit" class="btn btn-gold btn-full">
+            {{ 'customer.activate_account.submit' | t }}
+          </button>
+          <button type="submit" name="decline" class="btn btn-outline btn-full">
+            {{ 'customer.activate_account.cancel' | t }}
+          </button>
+        </div>
+      {% endform %}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Activate Account",
+  "tag": "section",
+  "class": "main-activate-account-wrapper",
+  "settings": []
+}
+{% endschema %}

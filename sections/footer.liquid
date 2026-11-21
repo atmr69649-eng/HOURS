@@ -64,13 +64,23 @@
       <!-- Shop Links -->
       <div class="footer-col">
         <h3 class="footer-heading">Shop</h3>
+        {%- liquid
+          assign shop_menu_links = section.settings.shop_menu.links
+          if shop_menu_links == blank and section.settings.shop_menu != blank
+            assign shop_menu_links = linklists[section.settings.shop_menu].links
+          endif
+        -%}
         <ul class="footer-links" role="list">
-          {% for link in linklists[section.settings.shop_menu].links %}
+          {% for link in shop_menu_links %}
             <li><a href="{{ link.url }}" class="footer-link">{{ link.title }}</a></li>
           {% else %}
-            <li><a href="/collections/all" class="footer-link">All Products</a></li>
-            <li><a href="/collections/new-arrivals" class="footer-link">New Arrivals</a></li>
-            <li><a href="/collections/sale" class="footer-link">Sale</a></li>
+            <li><a href="{{ routes.all_products_collection_url }}" class="footer-link">All Products</a></li>
+            {% if collections['new-arrivals'] != blank %}
+              <li><a href="{{ collections['new-arrivals'].url }}" class="footer-link">{{ collections['new-arrivals'].title }}</a></li>
+            {% endif %}
+            {% if collections['sale'] != blank %}
+              <li><a href="{{ collections['sale'].url }}" class="footer-link">{{ collections['sale'].title }}</a></li>
+            {% endif %}
           {% endfor %}
         </ul>
       </div>
@@ -78,14 +88,36 @@
       <!-- Info Links -->
       <div class="footer-col">
         <h3 class="footer-heading">Info</h3>
+        {%- liquid
+          assign info_menu_links = section.settings.info_menu.links
+          if info_menu_links == blank and section.settings.info_menu != blank
+            assign info_menu_links = linklists[section.settings.info_menu].links
+          endif
+        -%}
         <ul class="footer-links" role="list">
-          {% for link in linklists[section.settings.info_menu].links %}
+          {% for link in info_menu_links %}
             <li><a href="{{ link.url }}" class="footer-link">{{ link.title }}</a></li>
           {% else %}
-            <li><a href="/pages/about" class="footer-link">About Us</a></li>
-            <li><a href="/pages/faq" class="footer-link">FAQ</a></li>
-            <li><a href="/pages/contact" class="footer-link">Contact</a></li>
-            <li><a href="/pages/size-guide" class="footer-link">Size Guide</a></li>
+            {%- assign fallback_page_count = 0 -%}
+            {% if pages['about'] != blank %}
+              {%- assign fallback_page_count = fallback_page_count | plus: 1 -%}
+              <li><a href="{{ pages['about'].url }}" class="footer-link">{{ pages['about'].title }}</a></li>
+            {% endif %}
+            {% if pages['faq'] != blank %}
+              {%- assign fallback_page_count = fallback_page_count | plus: 1 -%}
+              <li><a href="{{ pages['faq'].url }}" class="footer-link">{{ pages['faq'].title }}</a></li>
+            {% endif %}
+            {% if pages['contact'] != blank %}
+              {%- assign fallback_page_count = fallback_page_count | plus: 1 -%}
+              <li><a href="{{ pages['contact'].url }}" class="footer-link">{{ pages['contact'].title }}</a></li>
+            {% endif %}
+            {% if pages['size-guide'] != blank %}
+              {%- assign fallback_page_count = fallback_page_count | plus: 1 -%}
+              <li><a href="{{ pages['size-guide'].url }}" class="footer-link">{{ pages['size-guide'].title }}</a></li>
+            {% endif %}
+            {% if fallback_page_count == 0 %}
+              <li><a href="{{ routes.search_url }}" class="footer-link">{{ 'general.search.search' | t }}</a></li>
+            {% endif %}
           {% endfor %}
         </ul>
       </div>
@@ -96,25 +128,67 @@
         <p style="font-size:var(--text-sm);color:var(--color-text-muted);margin-bottom:var(--space-4);line-height:1.6;">
           {{ section.settings.newsletter_subtitle | default: 'Early drops, exclusive restocks. No spam.' }}
         </p>
-        <form class="newsletter-form" data-newsletter-form action="/contact#contact_form" method="post" novalidate>
-          <input type="hidden" name="form_type" value="customer">
-          <input type="hidden" name="utf8" value="✓">
-          <div class="newsletter-input-wrap">
-            <label for="footer-email" class="sr-only">Email address</label>
-            <input
-              type="email"
-              id="footer-email"
-              name="contact[email]"
-              class="newsletter-input"
-              placeholder="your@email.com"
-              autocomplete="email"
-              required
-              aria-required="true">
-            <button type="submit" class="newsletter-btn" aria-label="Subscribe to newsletter">
-              Join
-            </button>
-          </div>
-        </form>
+        {% form 'customer', id: 'FooterNewsletterForm', class: 'newsletter-form', data-newsletter-form: '' %}
+          <input type="hidden" name="contact[tags]" value="newsletter">
+
+          {% if form.posted_successfully? %}
+            <div
+              id="FooterNewsletter-success"
+              class="form-status form-status-success newsletter-status"
+              role="status"
+              tabindex="-1"
+              autofocus>
+              <span>{{ 'general.newsletter.success' | t }}</span>
+            </div>
+          {% else %}
+            <div class="newsletter-input-wrap">
+              <label for="footer-email" class="sr-only">{{ 'general.newsletter.email_label' | t }}</label>
+              <input
+                type="email"
+                id="footer-email"
+                name="contact[email]"
+                class="newsletter-input"
+                value="{{ form.email | escape }}"
+                placeholder="{{ 'general.newsletter.email_placeholder' | t }}"
+                autocomplete="email"
+                autocorrect="off"
+                autocapitalize="off"
+                required
+                aria-required="true"
+                {% if form.errors %}
+                  aria-invalid="true"
+                  aria-describedby="FooterNewsletter-error"
+                {% endif %}>
+              <button
+                type="submit"
+                class="newsletter-btn"
+                aria-label="{{ 'general.newsletter.submit_aria' | t }}">
+                {{ 'general.newsletter.submit' | t }}
+              </button>
+            </div>
+
+            {% if form.errors %}
+              <div
+                id="FooterNewsletter-error"
+                class="form-status form-status-error newsletter-status"
+                role="alert"
+                tabindex="-1"
+                autofocus>
+                {% if form.errors.messages.email != blank %}
+                  <span>{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</span>
+                {% else %}
+                  {{ form.errors | default_errors }}
+                {% endif %}
+              </div>
+            {% endif %}
+
+            <div
+              class="form-status form-status-error newsletter-status"
+              data-newsletter-client-error
+              role="alert"
+              hidden></div>
+          {% endif %}
+        {% endform %}
       </div>
 
     </div>
@@ -124,11 +198,15 @@
       <p class="footer-copy">
         &copy; {{ 'now' | date: '%Y' }} HORUS. All rights reserved.
       </p>
-      <nav class="footer-legal" aria-label="Legal links">
-        {{ shop.privacy_policy.url | default: '/policies/privacy-policy' | link_to: 'Privacy' }}
-        {{ shop.terms_of_service.url | default: '/policies/terms-of-service' | link_to: 'Terms' }}
-        {{ shop.refund_policy.url | default: '/policies/refund-policy' | link_to: 'Refunds' }}
-      </nav>
+      {% if shop.policies.size > 0 %}
+        <nav class="footer-legal" aria-label="Legal links">
+          {% for policy in shop.policies %}
+            {% if policy != blank %}
+              {{ policy.title | link_to: policy.url }}
+            {% endif %}
+          {% endfor %}
+        </nav>
+      {% endif %}
     </div>
 
   </div>

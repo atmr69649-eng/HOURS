@@ -1,0 +1,626 @@
+{% comment %}
+  sections/main-product.liquid
+  HORUS Online Store 2.0 Product Detail Page (PDP)
+  Supports multi-media gallery, variant/size/color pickers, live pricing &
+  availability, quantity controls, AJAX add-to-cart, dynamic checkout, and
+  optional merchant-configurable collapsible detail blocks.
+{% endcomment %}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign product_form_id = 'product-form-' | append: section.id
+
+  assign is_on_sale = false
+  if current_variant.compare_at_price > current_variant.price
+    assign is_on_sale = true
+    assign discount_pct = current_variant.compare_at_price | minus: current_variant.price | times: 100 | divided_by: current_variant.compare_at_price
+  endif
+
+  assign is_new = false
+  assign is_unisex = false
+  assign is_limited = false
+  for tag in product.tags
+    if tag == 'new' or tag == 'new-arrival'
+      assign is_new = true
+    endif
+    if tag == 'unisex'
+      assign is_unisex = true
+    endif
+    if tag == 'limited' or tag == 'limited-edition'
+      assign is_limited = true
+    endif
+  endfor
+
+  assign active_media = current_variant.featured_media | default: product.featured_media
+  assign active_media_id = active_media.id
+-%}
+
+<section
+  id="MainProduct-{{ section.id }}"
+  class="pdp-section section-spacing"
+  data-product-section
+  data-section-id="{{ section.id }}"
+  data-product-url="{{ product.url }}"
+  aria-label="{{ product.title | escape }}">
+  <div class="container">
+
+    <!-- Breadcrumb -->
+    {% if section.settings.show_breadcrumb %}
+      <nav class="pdp-breadcrumb" aria-label="{{ 'general.breadcrumbs.label' | t }}">
+        <ol class="pdp-breadcrumb-list">
+          <li>
+            <a href="{{ routes.root_url }}" class="pdp-breadcrumb-link">{{ 'general.breadcrumbs.home' | t }}</a>
+          </li>
+          {% if collection %}
+            <li aria-hidden="true" class="pdp-breadcrumb-sep">/</li>
+            <li>
+              <a href="{{ collection.url }}" class="pdp-breadcrumb-link">{{ collection.title }}</a>
+            </li>
+          {% endif %}
+          <li aria-hidden="true" class="pdp-breadcrumb-sep">/</li>
+          <li class="pdp-breadcrumb-current" aria-current="page">{{ product.title }}</li>
+        </ol>
+      </nav>
+    {% endif %}
+
+    <div class="pdp-grid">
+
+      <!-- ======================================================
+           LEFT COLUMN: PRODUCT MEDIA GALLERY
+           ====================================================== -->
+      <div class="pdp-gallery" data-pdp-gallery>
+        <div class="pdp-media-stage">
+
+          <!-- Product Badges -->
+          <div class="card-badges pdp-badges" aria-label="Product badges">
+            {% if is_new %}
+              <span class="card-badge card-badge-new">NEW</span>
+            {% endif %}
+            <span
+              class="card-badge card-badge-sale"
+              data-pdp-sale-badge
+              {% unless is_on_sale %}hidden{% endunless %}>
+              {% if is_on_sale %}-{{ discount_pct }}%{% endif %}
+            </span>
+            {% if is_limited %}
+              <span class="card-badge card-badge-limited">LIMITED</span>
+            {% endif %}
+            {% if is_unisex %}
+              <span class="card-badge card-badge-unisex">
+                {% render 'icon-unisex' %} UNISEX
+              </span>
+            {% endif %}
+          </div>
+
+          {% if product.media.size > 0 %}
+            <div class="pdp-media-slides" data-pdp-slides>
+              {% for media in product.media %}
+                {%- liquid
+                  assign is_active_slide = false
+                  if active_media_id != blank
+                    if media.id == active_media_id
+                      assign is_active_slide = true
+                    endif
+                  elsif forloop.first
+                    assign is_active_slide = true
+                  endif
+                  assign media_alt = media.alt | default: product.title | escape
+                -%}
+                <div
+                  class="pdp-media-slide{% if is_active_slide %} is-active{% endif %}"
+                  data-media-id="{{ media.id }}"
+                  data-media-index="{{ forloop.index0 }}"
+                  {% unless is_active_slide %}hidden{% endunless %}>
+                  {% case media.media_type %}
+                    {% when 'image' %}
+                      {% if is_active_slide %}
+                        {{
+                          media
+                          | image_url: width: 1200
+                          | image_tag:
+                            class: 'pdp-main-img',
+                            alt: media_alt,
+                            width: media.width,
+                            height: media.height,
+                            widths: '400, 600, 800, 1000, 1200',
+                            sizes: '(min-width: 1024px) 52vw, 100vw',
+                            loading: 'eager',
+                            fetchpriority: 'high'
+                        }}
+                      {% else %}
+                        {{
+                          media
+                          | image_url: width: 1200
+                          | image_tag:
+                            class: 'pdp-main-img',
+                            alt: media_alt,
+                            width: media.width,
+                            height: media.height,
+                            widths: '400, 600, 800, 1000, 1200',
+                            sizes: '(min-width: 1024px) 52vw, 100vw',
+                            loading: 'lazy'
+                        }}
+                      {% endif %}
+                    {% when 'video' %}
+                      {{ media | video_tag: controls: true, autoplay: false, loop: true, class: 'pdp-main-video' }}
+                    {% when 'external_video' %}
+                      {{ media | external_video_tag: class: 'pdp-main-video' }}
+                    {% when 'model' %}
+                      {{ media | model_viewer_tag: class: 'pdp-main-model' }}
+                    {% else %}
+                      {{ media | media_tag: class: 'pdp-main-img' }}
+                  {% endcase %}
+                </div>
+              {% endfor %}
+            </div>
+
+            {% if product.media.size > 1 %}
+              <button
+                type="button"
+                class="pdp-gallery-arrow pdp-gallery-prev"
+                data-gallery-prev
+                aria-label="{{ 'products.product.previous_image' | t }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5"/>
+                </svg>
+              </button>
+              <button
+                type="button"
+                class="pdp-gallery-arrow pdp-gallery-next"
+                data-gallery-next
+                aria-label="{{ 'products.product.next_image' | t }}">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5"/>
+                </svg>
+              </button>
+            {% endif %}
+          {% else %}
+            <div class="pdp-media-placeholder">
+              <span>{{ 'products.product.no_image' | t }}</span>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Thumbnail Strip -->
+        {% if product.media.size > 1 %}
+          <div class="pdp-thumbs" role="group" aria-label="Product media thumbnails">
+            {% for media in product.media %}
+              {%- liquid
+                assign is_active_thumb = false
+                if active_media_id != blank
+                  if media.id == active_media_id
+                    assign is_active_thumb = true
+                  endif
+                elsif forloop.first
+                  assign is_active_thumb = true
+                endif
+                assign thumb_alt = media.alt | default: product.title | escape
+              -%}
+              <button
+                type="button"
+                class="pdp-thumb{% if is_active_thumb %} is-active{% endif %}"
+                data-gallery-thumb
+                data-media-id="{{ media.id }}"
+                data-media-index="{{ forloop.index0 }}"
+                aria-label="{{ 'products.product.view_image' | t: index: forloop.index }}"
+                aria-current="{% if is_active_thumb %}true{% else %}false{% endif %}">
+                {{
+                  media.preview_image
+                  | image_url: width: 200
+                  | image_tag:
+                    alt: thumb_alt,
+                    width: 100,
+                    height: 133,
+                    loading: 'lazy'
+                }}
+              </button>
+            {% endfor %}
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- ======================================================
+           RIGHT COLUMN: PRODUCT INFO & PURCHASE FORM
+           ====================================================== -->
+      <div class="pdp-info">
+
+        {% if section.settings.show_vendor and product.vendor != blank %}
+          <p class="pdp-vendor">{{ product.vendor }}</p>
+        {% endif %}
+
+        <h1 class="pdp-title">{{ product.title }}</h1>
+
+        {% if section.settings.show_sku %}
+          <p
+            class="pdp-sku"
+            data-pdp-sku
+            {% if current_variant.sku == blank %}hidden{% endif %}>
+            {{ 'products.product.sku' | t }}: <span data-pdp-sku-value>{{ current_variant.sku }}</span>
+          </p>
+        {% endif %}
+
+        <!-- Price & Availability -->
+        <div class="pdp-price-block">
+          <div class="pdp-price-row">
+            <span class="pdp-price" data-pdp-price>
+              {{ current_variant.price | money }}
+            </span>
+            <span
+              class="pdp-price-compare"
+              data-pdp-compare-price
+              {% unless is_on_sale %}hidden{% endunless %}>
+              {% if is_on_sale %}{{ current_variant.compare_at_price | money }}{% endif %}
+            </span>
+            <span
+              class="pdp-availability{% if current_variant.available %} is-available{% else %} is-soldout{% endif %}"
+              data-pdp-availability>
+              {% if current_variant.available %}
+                {{ 'products.product.in_stock' | t }}
+              {% else %}
+                {{ 'products.product.out_of_stock' | t }}
+              {% endif %}
+            </span>
+          </div>
+
+          {% if current_variant.unit_price_measurement %}
+            <p class="pdp-unit-price" data-pdp-unit-price>
+              <span class="sr-only">{{ 'products.product.unit_price' | t }}</span>
+              <span>{{ current_variant.unit_price | money }}</span>
+              <span aria-hidden="true">/</span>
+              <span>
+                {%- if current_variant.unit_price_measurement.reference_value != 1 -%}
+                  {{ current_variant.unit_price_measurement.reference_value }}
+                {%- endif -%}
+                {{ current_variant.unit_price_measurement.reference_unit }}
+              </span>
+            </p>
+          {% endif %}
+
+          {% if cart.taxes_included or shop.shipping_policy.body != blank %}
+            <p class="pdp-tax-note">
+              {%- if cart.taxes_included and shop.shipping_policy.body != blank -%}
+                {{ 'general.cart.taxes_included_and_shipping_policy_html' | t: link: shop.shipping_policy.url }}
+              {%- elsif cart.taxes_included -%}
+                {{ 'general.cart.taxes_included_but_shipping_at_checkout' | t }}
+              {%- elsif shop.shipping_policy.body != blank -%}
+                {{ 'general.cart.taxes_and_shipping_policy_at_checkout_html' | t: link: shop.shipping_policy.url }}
+              {%- endif -%}
+            </p>
+          {% endif %}
+        </div>
+
+        <div class="divider divider-gold pdp-divider"></div>
+
+        <!-- Native Shopify Product Form -->
+        {% form 'product', product, id: product_form_id, class: 'pdp-form', data-product-form: '' %}
+          <input
+            type="hidden"
+            name="id"
+            value="{{ current_variant.id }}"
+            data-variant-id-input>
+
+          <!-- Variant / Option Selectors -->
+          {% unless product.has_only_default_variant %}
+            <div class="pdp-variants" data-pdp-variants>
+              {% for option in product.options_with_values %}
+                {%- liquid
+                  assign option_swatch_count = option.values | map: 'swatch' | compact | size
+                  assign option_has_swatches = false
+                  if option_swatch_count > 0
+                    assign option_has_swatches = true
+                  endif
+                  assign option_position_index = forloop.index0
+                -%}
+                <fieldset class="pdp-option-group" data-option-index="{{ option_position_index }}">
+                  <legend class="pdp-option-label">
+                    <span>{{ option.name }}</span>
+                    <span class="pdp-option-selected" data-option-selected-value="{{ option_position_index }}">
+                      {{ option.selected_value }}
+                    </span>
+                  </legend>
+
+                  <div class="pdp-option-values{% if option_has_swatches %} pdp-option-swatches{% endif %}">
+                    {% for value in option.values %}
+                      {%- liquid
+                        assign input_id = section.id | append: '-option-' | append: option.position | append: '-' | append: forloop.index0
+                        assign value_has_swatch = false
+                        if value.swatch.image != blank or value.swatch.color != blank
+                          assign value_has_swatch = true
+                        endif
+                      -%}
+                      <div class="pdp-option-item">
+                        <input
+                          type="radio"
+                          id="{{ input_id }}"
+                          name="options[{{ option.name | escape }}]"
+                          value="{{ value | escape }}"
+                          class="sr-only pdp-option-radio"
+                          data-option-input
+                          data-option-position="{{ option_position_index }}"
+                          {% if option.selected_value == value %}checked{% endif %}>
+                        {% if value_has_swatch %}
+                          <label
+                            for="{{ input_id }}"
+                            class="pdp-color-swatch"
+                            title="{{ value | escape }}"
+                            data-option-label>
+                            {% render 'swatch', swatch: value.swatch, size: 'md' %}
+                            <span class="sr-only">{{ value }}</span>
+                          </label>
+                        {% else %}
+                          <label
+                            for="{{ input_id }}"
+                            class="pdp-option-pill"
+                            data-option-label>
+                            {{ value }}
+                          </label>
+                        {% endif %}
+                      </div>
+                    {% endfor %}
+                  </div>
+                </fieldset>
+              {% endfor %}
+            </div>
+
+            <!-- No-JS Variant Fallback -->
+            <noscript>
+              <div class="pdp-noscript-variants">
+                <label for="ProductVariantFallback-{{ section.id }}" class="pdp-option-label">
+                  {{ 'products.product.select_variant' | t }}
+                </label>
+                <select id="ProductVariantFallback-{{ section.id }}" name="id" class="pdp-select">
+                  {% for variant in product.variants %}
+                    <option
+                      value="{{ variant.id }}"
+                      {% if variant.id == current_variant.id %}selected{% endif %}
+                      {% unless variant.available %}disabled{% endunless %}>
+                      {{ variant.title }} — {{ variant.price | money }}
+                      {% unless variant.available %} ({{ 'products.product.sold_out' | t }}){% endunless %}
+                    </option>
+                  {% endfor %}
+                </select>
+              </div>
+            </noscript>
+          {% endunless %}
+
+          <!-- Quantity Selector -->
+          {% if section.settings.show_quantity_selector %}
+            <div class="pdp-quantity-wrap">
+              <label for="Quantity-{{ section.id }}" class="pdp-option-label">
+                {{ 'products.product.quantity' | t }}
+              </label>
+              <div class="pdp-qty-control" data-pdp-qty>
+                <button
+                  type="button"
+                  class="qty-btn pdp-qty-btn"
+                  data-qty-decrease
+                  aria-label="{{ 'general.cart.decrease_quantity' | t }}">−</button>
+                <input
+                  type="number"
+                  id="Quantity-{{ section.id }}"
+                  name="quantity"
+                  class="pdp-qty-input"
+                  value="1"
+                  min="1"
+                  {% if current_variant.inventory_management == 'shopify' and current_variant.inventory_policy == 'deny' and current_variant.inventory_quantity > 0 %}
+                    max="{{ current_variant.inventory_quantity }}"
+                  {% endif %}
+                  inputmode="numeric"
+                  aria-label="{{ 'products.product.quantity' | t }}"
+                  data-pdp-qty-input>
+                <button
+                  type="button"
+                  class="qty-btn pdp-qty-btn"
+                  data-qty-increase
+                  aria-label="{{ 'general.cart.increase_quantity' | t }}">+</button>
+              </div>
+            </div>
+          {% else %}
+            <input type="hidden" name="quantity" value="1">
+          {% endif %}
+
+          <!-- Form Error Banner -->
+          <div class="pdp-form-error" data-pdp-error role="alert" aria-live="assertive" hidden></div>
+
+          <!-- Purchase Buttons -->
+          <div class="pdp-actions">
+            <button
+              type="submit"
+              name="add"
+              class="btn btn-gold btn-full pdp-add-btn"
+              data-pdp-submit
+              {% unless current_variant.available %}disabled aria-disabled="true"{% endunless %}>
+              <span class="btn-text" data-pdp-submit-text>
+                {% if current_variant.available %}
+                  {{ 'products.product.add_to_cart' | t }}
+                {% else %}
+                  {{ 'products.product.sold_out' | t }}
+                {% endif %}
+              </span>
+            </button>
+
+            {% if section.settings.show_dynamic_checkout %}
+              <div class="pdp-dynamic-checkout" data-pdp-dynamic-checkout {% unless current_variant.available %}hidden{% endunless %}>
+                {{ form | payment_button }}
+              </div>
+            {% endif %}
+          </div>
+        {% endform %}
+
+        <!-- Product Description -->
+        {% if product.description != blank %}
+          <div class="pdp-description-wrap">
+            <h2 class="pdp-section-label">{{ 'products.product.description' | t }}</h2>
+            <div class="pdp-description rte">
+              {{ product.description }}
+            </div>
+          </div>
+        {% endif %}
+
+        <!-- Optional OS 2.0 Blocks (Collapsible Tabs / Custom Text / Share) -->
+        {% if section.blocks.size > 0 %}
+          <div class="pdp-blocks">
+            {% for block in section.blocks %}
+              {% case block.type %}
+                {% when 'collapsible_tab' %}
+                  {% if block.settings.heading != blank %}
+                    <details class="pdp-accordion" {{ block.shopify_attributes }}>
+                      <summary class="pdp-accordion-trigger">
+                        <span>{{ block.settings.heading }}</span>
+                        <svg class="pdp-accordion-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                          <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                      </summary>
+                      <div class="pdp-accordion-body rte">
+                        {{ block.settings.content }}
+                        {% if block.settings.page != blank %}
+                          {{ block.settings.page.content }}
+                        {% endif %}
+                      </div>
+                    </details>
+                  {% endif %}
+
+                {% when 'custom_text' %}
+                  {% if block.settings.text != blank %}
+                    <div class="pdp-custom-text rte" {{ block.shopify_attributes }}>
+                      {{ block.settings.text }}
+                    </div>
+                  {% endif %}
+
+                {% when 'share' %}
+                  <div class="pdp-share-wrap" {{ block.shopify_attributes }}>
+                    <button
+                      type="button"
+                      class="pdp-share-btn"
+                      data-pdp-share
+                      data-share-title="{{ product.title | escape }}"
+                      data-share-url="{{ shop.url }}{{ product.url }}">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M7.217 10.907a2.25 2.25 0 100 2.186m0-2.186c.18.324.283.696.283 1.093s-.103.77-.283 1.093m0-2.186l9.566-5.314m-9.566 7.5l9.566 5.314m0 0a2.25 2.25 0 103.935 2.186 2.25 2.25 0 00-3.935-2.186zm0-12.814a2.25 2.25 0 103.933-2.185 2.25 2.25 0 00-3.933 2.185z"/>
+                      </svg>
+                      <span>{{ block.settings.share_label | default: 'Share' }}</span>
+                    </button>
+                  </div>
+              {% endcase %}
+            {% endfor %}
+          </div>
+        {% endif %}
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Variant Data JSON for Client-Side Variant Resolution -->
+  <script type="application/json" data-product-variants>
+    [
+      {%- for variant in product.variants -%}
+        {
+          "id": {{ variant.id | json }},
+          "title": {{ variant.title | json }},
+          "options": {{ variant.options | json }},
+          "available": {{ variant.available | json }},
+          "price": {{ variant.price | json }},
+          "compare_at_price": {{ variant.compare_at_price | json }},
+          "sku": {{ variant.sku | json }},
+          "featured_media_id": {{ variant.featured_media.id | json }},
+          "inventory_management": {{ variant.inventory_management | json }},
+          "inventory_policy": {{ variant.inventory_policy | json }},
+          "inventory_quantity": {{ variant.inventory_quantity | json }}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  </script>
+
+  <!-- Native Shopify Product Structured Data (SEO) -->
+  <script type="application/ld+json">
+    {{ product | structured_data }}
+  </script>
+</section>
+
+{% schema %}
+{
+  "name": "Product Information",
+  "tag": "section",
+  "class": "main-product-wrapper",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumb",
+      "label": "Show breadcrumb navigation",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_vendor",
+      "label": "Show vendor",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_sku",
+      "label": "Show SKU",
+      "default": false
+    },
+    {
+      "type": "checkbox",
+      "id": "show_quantity_selector",
+      "label": "Show quantity selector",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_dynamic_checkout",
+      "label": "Show dynamic checkout buttons",
+      "info": "Displays accelerated checkout options configured in Shopify Payments.",
+      "default": true
+    }
+  ],
+  "blocks": [
+    {
+      "type": "collapsible_tab",
+      "name": "Collapsible Row",
+      "settings": [
+        {
+          "type": "text",
+          "id": "heading",
+          "label": "Heading"
+        },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "Row content"
+        },
+        {
+          "type": "page",
+          "id": "page",
+          "label": "Row content from page"
+        }
+      ]
+    },
+    {
+      "type": "custom_text",
+      "name": "Custom Text",
+      "settings": [
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "Text"
+        }
+      ]
+    },
+    {
+      "type": "share",
+      "name": "Share Link",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "share_label",
+          "label": "Label",
+          "default": "Share"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

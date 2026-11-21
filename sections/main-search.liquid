@@ -1,0 +1,231 @@
+{% comment %}
+  sections/main-search.liquid
+  HORUS Online Store 2.0 Search Page
+  Supports native Shopify search, product cards, page & article results,
+  native search.filters & search.sort_options, pagination, and empty states.
+{% endcomment %}
+
+{%- liquid
+  assign results_per_page = section.settings.results_per_page | default: 16
+  assign has_active_filters = false
+  if search.performed
+    for filter in search.filters
+      if filter.type == 'price_range'
+        if filter.min_value.value != nil or filter.max_value.value != nil
+          assign has_active_filters = true
+        endif
+      elsif filter.active_values.size > 0
+        assign has_active_filters = true
+      endif
+    endfor
+  endif
+-%}
+
+<section
+  id="MainSearch-{{ section.id }}"
+  class="search-page-section section-spacing"
+  aria-label="{{ 'general.search.title' | t }}">
+  <div class="container">
+
+    <!-- Search Header & Native Form -->
+    <div class="search-page-header">
+      <h1 class="search-page-title">{{ 'general.search.title' | t }}</h1>
+
+      <form
+        action="{{ routes.search_url }}"
+        method="get"
+        role="search"
+        class="search-page-form">
+        <input type="hidden" name="options[prefix]" value="last">
+        <div class="search-page-input-wrap">
+          <label for="SearchPageInput-{{ section.id }}" class="sr-only">
+            {{ 'general.search.search' | t }}
+          </label>
+          <span class="search-page-icon" aria-hidden="true">
+            {% render 'icon-search' %}
+          </span>
+          <input
+            type="search"
+            id="SearchPageInput-{{ section.id }}"
+            name="q"
+            class="search-page-input"
+            value="{{ search.terms | escape }}"
+            placeholder="{{ 'general.search.placeholder' | t }}"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false">
+          <button type="submit" class="btn btn-gold search-page-submit">
+            {{ 'general.search.submit' | t }}
+          </button>
+        </div>
+      </form>
+
+      {% if search.performed %}
+        <p class="search-page-status" role="status" aria-live="polite">
+          {% if search.results_count > 0 %}
+            {{ 'general.search.results_with_count' | t: count: search.results_count, terms: search.terms }}
+          {% else %}
+            {{ 'general.search.no_results' | t: terms: search.terms }}
+          {% endif %}
+        </p>
+      {% else %}
+        <p class="search-page-status">
+          {{ 'general.search.prompt' | t }}
+        </p>
+      {% endif %}
+    </div>
+
+    {% if search.performed %}
+      <!-- Native Search Filtering & Sorting -->
+      {% if search.results_count > 0 or has_active_filters %}
+        {% render 'facets',
+          results: search,
+          enable_filtering: section.settings.enable_filtering,
+          enable_sorting: section.settings.enable_sorting,
+          section_id: section.id
+        %}
+      {% endif %}
+
+      <!-- Paginated Search Results -->
+      {% paginate search.results by results_per_page %}
+        {% if search.results_count > 0 %}
+          <div class="products-grid search-results-grid" aria-label="Search results">
+            {% for item in search.results %}
+              <div
+                class="product-item animate-fade-in"
+                style="animation-delay: {{ forloop.index0 | times: 35 }}ms;">
+                {% case item.object_type %}
+                  {% when 'product' %}
+                    {% render 'product-card', product: item %}
+
+                  {% when 'article' %}
+                    {%- assign article_alt = item.image.alt | default: item.title | escape -%}
+                    <article class="product-card search-result-card">
+                      <a href="{{ item.url }}" class="card-image-wrap search-result-media">
+                        {% if item.image %}
+                          {{
+                            item.image
+                            | image_url: width: 600
+                            | image_tag:
+                              class: 'card-img',
+                              alt: article_alt,
+                              width: 600,
+                              height: 800,
+                              loading: 'lazy'
+                          }}
+                        {% else %}
+                          <div class="search-result-placeholder">
+                            <span>{{ 'general.search.type_article' | t }}</span>
+                          </div>
+                        {% endif %}
+                        <div class="card-badges">
+                          <span class="card-badge card-badge-limited">{{ 'general.search.type_article' | t }}</span>
+                        </div>
+                      </a>
+                      <div class="card-info">
+                        <a href="{{ item.url }}" class="card-title">{{ item.title }}</a>
+                        {% if item.excerpt_or_content != blank %}
+                          <p class="search-result-excerpt">
+                            {{ item.excerpt_or_content | strip_html | truncate: 110 }}
+                          </p>
+                        {% endif %}
+                        <a href="{{ item.url }}" class="search-result-more">
+                          {{ 'general.search.read_more' | t }} →
+                        </a>
+                      </div>
+                    </article>
+
+                  {% when 'page' %}
+                    <article class="product-card search-result-card search-result-card-page">
+                      <div class="card-info search-result-page-body">
+                        <span class="card-badge card-badge-limited search-result-type-pill">
+                          {{ 'general.search.type_page' | t }}
+                        </span>
+                        <a href="{{ item.url }}" class="card-title search-result-page-title">
+                          {{ item.title }}
+                        </a>
+                        {% if item.content != blank %}
+                          <p class="search-result-excerpt">
+                            {{ item.content | strip_html | truncate: 140 }}
+                          </p>
+                        {% endif %}
+                        <a href="{{ item.url }}" class="search-result-more">
+                          {{ 'general.search.view_page' | t }} →
+                        </a>
+                      </div>
+                    </article>
+                {% endcase %}
+              </div>
+            {% endfor %}
+          </div>
+
+          {% render 'pagination', paginate: paginate %}
+        {% else %}
+          <!-- Empty Search Results State -->
+          <div class="collection-empty">
+            <div class="cart-empty">
+              <div class="cart-empty-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"/>
+                </svg>
+              </div>
+              {% if has_active_filters %}
+                {%- assign encoded_q = search.terms | url_encode -%}
+                <h2>{{ 'collections.general.empty_filtered' | t }}</h2>
+                <p>{{ 'collections.general.empty_hint' | t }}</p>
+                <a href="{{ routes.search_url }}?q={{ encoded_q }}&options%5Bprefix%5D=last" class="btn btn-gold">
+                  {{ 'collections.filters.clear_all' | t }}
+                </a>
+              {% else %}
+                <h2>{{ 'general.search.no_results' | t: terms: search.terms }}</h2>
+                <p>{{ 'general.search.no_results_hint' | t }}</p>
+                <a href="{{ routes.all_products_collection_url }}" class="btn btn-gold">
+                  {{ 'collections.general.browse_all' | t }}
+                </a>
+              {% endif %}
+            </div>
+          </div>
+        {% endif %}
+      {% endpaginate %}
+    {% else %}
+      <div class="search-page-browse">
+        <a href="{{ routes.all_products_collection_url }}" class="btn btn-outline">
+          {{ 'collections.general.browse_all' | t }}
+        </a>
+      </div>
+    {% endif %}
+
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Search Results",
+  "tag": "section",
+  "class": "main-search-wrapper",
+  "settings": [
+    {
+      "type": "range",
+      "id": "results_per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "label": "Results per page",
+      "default": 16
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_filtering",
+      "label": "Enable storefront filtering",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_sorting",
+      "label": "Enable sorting",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

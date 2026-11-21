@@ -1,0 +1,97 @@
+{% comment %}
+  snippets/search-drawer.liquid
+  HORUS Predictive Search Overlay
+  Powered by Shopify's native Predictive Search API (routes.predictive_search_url)
+  with native <form action="{{ routes.search_url }}"> fallback.
+{% endcomment %}
+
+<div
+  id="search-overlay"
+  class="cart-overlay search-overlay"
+  data-search-overlay
+  aria-hidden="true"></div>
+
+<div
+  id="search-drawer"
+  class="search-drawer"
+  role="dialog"
+  aria-modal="true"
+  aria-label="{{ 'general.search.search' | t }}"
+  aria-hidden="true"
+  data-search-drawer>
+  <div class="container search-drawer-inner">
+
+    <div class="search-drawer-header">
+      <form
+        action="{{ routes.search_url }}"
+        method="get"
+        role="search"
+        class="search-drawer-form"
+        data-predictive-search-form>
+        <input type="hidden" name="options[prefix]" value="last">
+
+        <div class="search-drawer-input-wrap">
+          <label for="predictive-search-input" class="sr-only">
+            {{ 'general.search.search' | t }}
+          </label>
+          <span class="search-drawer-icon" aria-hidden="true">
+            {% render 'icon-search' %}
+          </span>
+          <input
+            type="search"
+            id="predictive-search-input"
+            name="q"
+            class="search-drawer-input"
+            placeholder="{{ 'general.search.placeholder' | t }}"
+            autocomplete="off"
+            autocorrect="off"
+            autocapitalize="off"
+            spellcheck="false"
+            role="combobox"
+            aria-expanded="false"
+            aria-owns="predictive-search-results"
+            aria-controls="predictive-search-results"
+            aria-autocomplete="list"
+            data-predictive-search-input>
+
+          <button
+            type="button"
+            class="search-drawer-clear"
+            data-search-clear
+            aria-label="{{ 'general.search.clear' | t }}"
+            hidden>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+
+          <button type="submit" class="btn btn-gold search-drawer-submit">
+            {{ 'general.search.submit' | t }}
+          </button>
+        </div>
+      </form>
+
+      <button
+        type="button"
+        class="cart-close search-drawer-close"
+        data-search-close
+        aria-label="{{ 'general.accessibility.close' | t }}">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Live Predictive Search Results -->
+    <div
+      id="predictive-search-results"
+      class="predictive-search-results"
+      role="listbox"
+      aria-label="{{ 'general.search.search' | t }}"
+      aria-live="polite"
+      data-predictive-search-results
+      hidden>
+    </div>
+
+  </div>
+</div>

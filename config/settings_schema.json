@@ -169,7 +169,8 @@
         "step": 10,
         "unit": "$",
         "label": "Free shipping threshold",
-        "default": 100
+        "info": "Set to 0 to hide the free shipping progress bar until free shipping is configured in Shopify Shipping Settings.",
+        "default": 0
       }
     ]
   },

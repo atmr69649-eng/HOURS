@@ -65,7 +65,13 @@
     <nav class="header-nav" role="navigation" aria-label="Main navigation">
 
       <!-- Static main menu links -->
-      {% for link in linklists[settings.main_menu_handle].links %}
+      {%- liquid
+        assign header_main_links = settings.main_menu_handle.links
+        if header_main_links == blank and settings.main_menu_handle != blank
+          assign header_main_links = linklists[settings.main_menu_handle].links
+        endif
+      -%}
+      {% for link in header_main_links %}
         {% unless link.title == 'Shop Collection' or link.title == 'Shop' %}
           <a
             href="{{ link.url }}"
@@ -89,30 +95,59 @@
           </svg>
         </button>
 
+        {%- liquid
+          assign url_all = section.settings.link_all | default: routes.all_products_collection_url
+          assign label_all = section.settings.label_all | default: 'All Products'
+
+          assign url_hoodies = section.settings.link_hoodies
+          if url_hoodies == blank and collections['hoodies'] != blank
+            assign url_hoodies = collections['hoodies'].url
+          endif
+          assign label_hoodies = section.settings.label_hoodies | default: collections['hoodies'].title | default: 'Hoodies'
+
+          assign url_tshirts = section.settings.link_tshirts
+          if url_tshirts == blank and collections['t-shirts'] != blank
+            assign url_tshirts = collections['t-shirts'].url
+          endif
+          assign label_tshirts = section.settings.label_tshirts | default: collections['t-shirts'].title | default: 'T-Shirts'
+
+          assign url_sweatpants = section.settings.link_sweatpants
+          if url_sweatpants == blank and collections['sweatpants'] != blank
+            assign url_sweatpants = collections['sweatpants'].url
+          endif
+          assign label_sweatpants = section.settings.label_sweatpants | default: collections['sweatpants'].title | default: 'Sweatpants'
+        -%}
+
         <div id="shop-dropdown" class="nav-dropdown" role="menu" aria-label="Shop categories">
           <!-- Gold accent bar -->
           <div class="nav-dropdown-bar"></div>
 
-          <a href="{{ section.settings.link_all   | default: '/collections/all' }}"
+          <a href="{{ url_all }}"
              class="nav-dropdown-item" role="menuitem">
             <span class="nav-dropdown-icon">✦</span>
-            {{ section.settings.label_all | default: 'All Products' }}
+            {{ label_all }}
           </a>
-          <a href="{{ section.settings.link_hoodies   | default: '/collections/hoodies' }}"
-             class="nav-dropdown-item" role="menuitem">
-            <span class="nav-dropdown-icon">✦</span>
-            {{ section.settings.label_hoodies | default: 'Hoodies' }}
-          </a>
-          <a href="{{ section.settings.link_tshirts   | default: '/collections/t-shirts' }}"
-             class="nav-dropdown-item" role="menuitem">
-            <span class="nav-dropdown-icon">✦</span>
-            {{ section.settings.label_tshirts | default: 'T-Shirts' }}
-          </a>
-          <a href="{{ section.settings.link_sweatpants | default: '/collections/sweatpants' }}"
-             class="nav-dropdown-item" role="menuitem">
-            <span class="nav-dropdown-icon">✦</span>
-            {{ section.settings.label_sweatpants | default: 'Sweatpants' }}
-          </a>
+          {% if url_hoodies != blank %}
+            <a href="{{ url_hoodies }}"
+               class="nav-dropdown-item" role="menuitem">
+              <span class="nav-dropdown-icon">✦</span>
+              {{ label_hoodies }}
+            </a>
+          {% endif %}
+          {% if url_tshirts != blank %}
+            <a href="{{ url_tshirts }}"
+               class="nav-dropdown-item" role="menuitem">
+              <span class="nav-dropdown-icon">✦</span>
+              {{ label_tshirts }}
+            </a>
+          {% endif %}
+          {% if url_sweatpants != blank %}
+            <a href="{{ url_sweatpants }}"
+               class="nav-dropdown-item" role="menuitem">
+              <span class="nav-dropdown-icon">✦</span>
+              {{ label_sweatpants }}
+            </a>
+          {% endif %}
         </div>
       </div>
 
@@ -126,15 +161,17 @@
         {% render 'icon-search' %}
       </a>
 
-      <!-- Account (desktop only) -->
-      <a
-        href="{{ routes.account_url }}"
-        class="icon-btn"
-        aria-label="{% if customer %}{{ customer.first_name }}'s account{% else %}Log in{% endif %}"
-        style="display:none"
-        data-desktop-only>
-        {% render 'icon-account' %}
-      </a>
+      <!-- Account (desktop only; hidden when customer accounts disabled in Admin) -->
+      {% if shop.customer_accounts_enabled %}
+        <a
+          href="{{ routes.account_url }}"
+          class="icon-btn"
+          aria-label="{% if customer %}{{ customer.first_name }}'s account{% else %}{{ 'customer.log_in' | t }}{% endif %}"
+          style="display:none"
+          data-desktop-only>
+          {% render 'icon-account' %}
+        </a>
+      {% endif %}
 
       <!-- Cart -->
       <button
@@ -158,10 +195,16 @@
 <!-- Mobile "Shop Collection" sub-menu (injected by mobile nav JS) -->
 <template id="mobile-shop-submenu">
   <div class="mobile-nav-submenu">
-    <a href="{{ section.settings.link_all        | default: '/collections/all' }}"       class="mobile-nav-link mobile-nav-sublink">All Products</a>
-    <a href="{{ section.settings.link_hoodies    | default: '/collections/hoodies' }}"   class="mobile-nav-link mobile-nav-sublink">Hoodies</a>
-    <a href="{{ section.settings.link_tshirts    | default: '/collections/t-shirts' }}"  class="mobile-nav-link mobile-nav-sublink">T-Shirts</a>
-    <a href="{{ section.settings.link_sweatpants | default: '/collections/sweatpants' }}" class="mobile-nav-link mobile-nav-sublink">Sweatpants</a>
+    <a href="{{ url_all }}" class="mobile-nav-link mobile-nav-sublink">{{ label_all }}</a>
+    {% if url_hoodies != blank %}
+      <a href="{{ url_hoodies }}" class="mobile-nav-link mobile-nav-sublink">{{ label_hoodies }}</a>
+    {% endif %}
+    {% if url_tshirts != blank %}
+      <a href="{{ url_tshirts }}" class="mobile-nav-link mobile-nav-sublink">{{ label_tshirts }}</a>
+    {% endif %}
+    {% if url_sweatpants != blank %}
+      <a href="{{ url_sweatpants }}" class="mobile-nav-link mobile-nav-sublink">{{ label_sweatpants }}</a>
+    {% endif %}
   </div>
 </template>
 

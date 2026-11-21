@@ -76,13 +76,32 @@
   {% section 'header' %}
 
   <!-- Mobile Navigation -->
+  {%- liquid
+    assign mobile_main_links = settings.main_menu_handle.links
+    if mobile_main_links == blank and settings.main_menu_handle != blank
+      assign mobile_main_links = linklists[settings.main_menu_handle].links
+    endif
+    assign mobile_secondary_links = settings.secondary_menu_handle.links
+    if mobile_secondary_links == blank and settings.secondary_menu_handle != blank
+      assign mobile_secondary_links = linklists[settings.secondary_menu_handle].links
+    endif
+  -%}
   <nav id="mobile-nav" class="mobile-nav" aria-label="Mobile navigation" aria-hidden="true">
-    {% for link in linklists[settings.main_menu_handle].links %}
+    {% for link in mobile_main_links %}
       <a href="{{ link.url }}" class="mobile-nav-link">{{ link.title }}</a>
     {% endfor %}
     <div style="margin-top:auto;padding-top:var(--space-8);">
       <div class="divider-gold divider" style="margin-bottom:var(--space-6);"></div>
-      {% for link in linklists[settings.secondary_menu_handle].links %}
+      {% if shop.customer_accounts_enabled %}
+        <a href="{{ routes.account_url }}" class="mobile-nav-link mobile-nav-account">
+          {% if customer %}
+            {{ 'customer.account.title' | t }}
+          {% else %}
+            {{ 'customer.log_in' | t }}
+          {% endif %}
+        </a>
+      {% endif %}
+      {% for link in mobile_secondary_links %}
         <a href="{{ link.url }}" class="mobile-nav-link" style="font-size:var(--text-xl);color:var(--color-text-muted);">{{ link.title }}</a>
       {% endfor %}
     </div>
@@ -94,6 +113,11 @@
   <!-- Cart Drawer -->
   {% render 'cart-drawer' %}
 
+  <!-- Predictive Search Overlay (respects enable_predictive_search setting) -->
+  {% if settings.enable_predictive_search %}
+    {% render 'search-drawer' %}
+  {% endif %}
+
   <!-- Main Content -->
   <main id="main-content" tabindex="-1">
     {{ content_for_layout }}
@@ -103,6 +127,46 @@
   {% section 'footer' %}
 
   <!-- Toast Notifications (injected by JS) -->
+
+  <!-- Theme Runtime Config (native Shopify money format, routes & settings) -->
+  <script>
+    window.HorusTheme = {
+      moneyFormat: {{ shop.money_format | json }},
+      cartType: {{ settings.cart_type | default: 'drawer' | json }},
+      freeShippingThreshold: {{ settings.free_shipping_threshold | default: 0 | times: 100 | json }},
+      enablePredictiveSearch: {{ settings.enable_predictive_search | default: false | json }},
+      routes: {
+        cartUrl: {{ routes.cart_url | json }},
+        cartAddUrl: {{ routes.cart_add_url | json }},
+        cartChangeUrl: {{ routes.cart_change_url | json }},
+        cartUpdateUrl: {{ routes.cart_update_url | json }},
+        allProductsUrl: {{ routes.all_products_collection_url | json }},
+        searchUrl: {{ routes.search_url | json }},
+        predictiveSearchUrl: {{ routes.predictive_search_url | json }}
+      },
+      strings: {
+        addToCart: {{ 'products.product.add_to_cart' | t | json }},
+        soldOut: {{ 'products.product.sold_out' | t | json }},
+        unavailable: {{ 'products.product.unavailable' | t | json }},
+        inStock: {{ 'products.product.in_stock' | t | json }},
+        outOfStock: {{ 'products.product.out_of_stock' | t | json }},
+        remove: {{ 'general.cart.remove' | t | json }},
+        continueShopping: {{ 'general.cart.continue_shopping' | t | json }},
+        cartEmpty: {{ 'general.cart.empty' | t | json }},
+        cartEmptySubtitle: {{ 'general.cart.empty_subtitle' | t | json }},
+        decreaseQuantity: {{ 'general.cart.decrease_quantity' | t | json }},
+        increaseQuantity: {{ 'general.cart.increase_quantity' | t | json }},
+        freeShippingUnlocked: {{ 'general.cart.free_shipping_unlocked' | t | json }},
+        linkCopied: {{ 'products.product.link_copied' | t | json }},
+        searchLoading: {{ 'general.search.loading' | t | json }},
+        searchError: {{ 'general.search.error' | t | json }},
+        searchProducts: {{ 'general.search.products' | t | json }},
+        searchCollections: {{ 'general.search.collections' | t | json }},
+        searchNoImage: {{ 'products.product.no_image' | t | json }},
+        newsletterInvalidEmail: {{ 'general.newsletter.invalid_email' | t | json }}
+      }
+    };
+  </script>
 
   <!-- Theme JS -->
   <script src="{{ 'theme.js' | asset_url }}" defer></script>

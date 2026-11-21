@@ -1,0 +1,81 @@
+{% comment %}
+  snippets/product-swatches.liquid
+  Reusable Shopify-native swatch selector strip for Product Cards, Quick-Add,
+  and Featured Product sections.
+  Reads variant option values directly from product.options_with_values.
+  - Uses Shopify's native swatch.image / swatch.color via snippets/swatch.liquid.
+  - When an option has no Shopify swatch metadata, falls back cleanly to
+    HORUS text-label pills without guessing arbitrary colors from names.
+
+  Parameters:
+    - product:             Shopify product drop
+    - swatch_option:       product_option drop from product.options_with_values
+    - swatch_option_index: 0-based index of swatch_option
+    - active_value:        currently selected option value string
+    - has_native_swatches: boolean (true when at least one value has swatch metadata)
+{% endcomment %}
+
+{% if swatch_option != blank and swatch_option.values.size > 0 %}
+  <div
+    class="card-swatches{% unless has_native_swatches %} card-swatches--text{% endunless %}"
+    aria-label="{{ swatch_option.name | escape }}"
+    role="group">
+    {% for value in swatch_option.values %}
+      {%- liquid
+        assign value_label = value.name | default: value
+        assign is_active_value = false
+        if value_label == active_value
+          assign is_active_value = true
+        endif
+
+        assign value_has_swatch = false
+        if value.swatch.image != blank or value.swatch.color != blank
+          assign value_has_swatch = true
+        endif
+
+        # Resolve representative variant (preferring available) & featured image for this value
+        assign rep_variant = nil
+        assign rep_img_variant = nil
+        for v in product.variants
+          if v.options[swatch_option_index] == value_label
+            if rep_variant == nil
+              assign rep_variant = v
+            elsif rep_variant.available == false and v.available
+              assign rep_variant = v
+            endif
+            if rep_img_variant == nil and v.featured_image != blank
+              assign rep_img_variant = v
+            endif
+          endif
+        endfor
+        assign swatch_variant = rep_variant | default: value.variant
+        assign swatch_variant_img = rep_img_variant.featured_image | default: swatch_variant.featured_image
+      -%}
+
+      <button
+        type="button"
+        class="swatch{% if is_active_value %} active{% endif %}{% unless value_has_swatch %} swatch--text{% endunless %}"
+        title="{{ value_label | escape }}"
+        aria-label="{{ value_label | escape }}"
+        aria-pressed="{% if is_active_value %}true{% else %}false{% endif %}"
+        data-color="{{ value_label | handle }}"
+        {% if swatch_variant != nil %}
+          data-variant-id="{{ swatch_variant.id }}"
+          data-variant-available="{{ swatch_variant.available }}"
+          data-variant-price="{{ swatch_variant.price }}"
+          {% if swatch_variant.compare_at_price > swatch_variant.price %}
+            data-variant-compare="{{ swatch_variant.compare_at_price }}"
+          {% endif %}
+        {% endif %}
+        {% if swatch_variant_img != blank %}
+          data-variant-img="{{ swatch_variant_img | image_url: width: 600 }}"
+        {% endif %}>
+        {% if value_has_swatch %}
+          {% render 'swatch', swatch: value.swatch, size: 'sm' %}
+        {% else %}
+          <span class="swatch-text-label">{{ value_label }}</span>
+        {% endif %}
+      </button>
+    {% endfor %}
+  </div>
+{% endif %}

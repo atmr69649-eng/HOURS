@@ -1,0 +1,44 @@
+{% comment %}
+  snippets/swatch.liquid
+  Single-source-of-truth Shopify-native swatch renderer.
+  Reads ONLY Shopify-managed swatch metadata (swatch.image or swatch.color).
+  Never guesses or maps colors from option text labels.
+
+  Parameters:
+    - swatch: Shopify swatch drop (product_option_value.swatch or filter_value.swatch)
+    - size:   'xs' (14px facets) | 'sm' (18px product cards) | 'md' (28px PDP) [default: 'sm']
+{% endcomment %}
+
+{%- liquid
+  assign swatch_size = size | default: 'sm'
+  assign swatch_value = nil
+  assign swatch_type = 'fallback'
+  assign swatch_focal_point = 'center'
+
+  if swatch != blank
+    if swatch.image != blank
+      assign swatch_image_url = swatch.image | image_url: width: 64
+      assign swatch_value = 'url(' | append: swatch_image_url | append: ')'
+      assign swatch_type = 'image'
+      if swatch.image.presentation.focal_point != blank
+        assign swatch_focal_point = swatch.image.presentation.focal_point
+      endif
+    elsif swatch.color != blank
+      if swatch.color.rgb != blank
+        assign swatch_value = 'rgb(' | append: swatch.color.rgb | append: ')'
+      else
+        assign swatch_value = swatch.color
+      endif
+      assign swatch_type = 'color'
+    endif
+  endif
+-%}
+
+<span
+  class="horus-swatch horus-swatch--{{ swatch_size }} horus-swatch--{{ swatch_type }}"
+  {% if swatch_value != blank %}
+    style="--swatch-bg: {{ swatch_value }};{% if swatch_type == 'image' %} --swatch-focal: {{ swatch_focal_point }};{% endif %}"
+  {% endif %}
+  data-swatch-source="{{ swatch_type }}"
+  aria-hidden="true">
+</span>
